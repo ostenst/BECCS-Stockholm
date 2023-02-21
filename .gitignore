@@ -1,0 +1,8 @@
+*.png
+*.zip
+*.xlsx
+*.csv
+*.pdf
+Rhodium/*
+.vscode
+.DS_Store
