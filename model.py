@@ -344,7 +344,7 @@ def BECCS_investment(
 # Now the calculation model is done!
 
 
-def return_model():
+def return_model() -> Model:
     ## DEFINE RHODIUM MODEL
     model = Model(BECCS_investment)
     model.parameters = [
