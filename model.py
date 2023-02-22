@@ -36,6 +36,8 @@ from scipy.optimize import brentq as root
 from rhodium import Model, Parameter, Response, RealLever, UniformUncertainty
 import random
 
+from dataclasses import dataclass, field
+
 ## CONSTRUCT THE CALCULATION MODEL
 # The calculations below aim to quantify the annual prices of electricity, heat and NEs (i.e. the
 # revenues), as well as the different costs of the Invest and Wait strategies. This is done for 27
@@ -206,6 +208,45 @@ def find_pETS(pETS_2024, pETS_dt, pmaximum_increase, pmaximum_decrease):
         pETS_vec.append(pETS)
 
     return pETS_vec
+
+
+@dataclass(slots=True)
+class BECCS_Plant:
+    """Represents a biomass CCS plant
+
+    POWER PLANT OPERATING CONDITIONS: Operating conditions are not modelled as uncertainties,
+    as they are routinely managed by the power plant operators.
+    Refer to full article for data sources.
+
+    Arguments
+    ---------
+    Qbiomass_input : float
+    Wpower_output_wait : float
+    Qheat_output_wait : float
+    Wpower_output_invest : float
+    Qheat_output_invest : float
+    Operating_hours : float
+    CO2capture_rate : float
+    """
+
+    Qbiomass_input: float = 362  # [MW]
+    Wpower_output_wait: float = 110  # [MW]
+    Qheat_output_wait: float = 287  # [MW]
+    Wpower_output_invest: float = 53  # [MW]
+    Qheat_output_invest: float = 337  # [MW]
+
+    Operating_hours: float = (
+        8760 * 0.7
+    )  # [h] rule of thumb of ~70 % operating hours/year.
+    CO2capture_rate: float = 0.3  # [tCO2/MWh_biomass]
+
+    CO2captured: float = field(init=False)  # [tCO2/year]
+    OPEX_power_plant: float = field(init=False)  # [EUR/year]
+
+    # [tCO2/year], about 5 % of CO2 is leaked across the value chain.
+    CO2captured = CO2capture_rate * Qbiomass_input * Operating_hours * (1 - 0.05)
+    # [EUR/year], see full article for these operational costs.
+    OPEX_power_plant = 29000 * Qbiomass_input + 0.5 * Operating_hours * Qbiomass_input
 
 
 def BECCS_investment(
