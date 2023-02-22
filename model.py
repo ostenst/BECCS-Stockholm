@@ -211,7 +211,7 @@ def find_pETS(pETS_2024, pETS_dt, pmaximum_increase, pmaximum_decrease):
 
 
 @dataclass(slots=True)
-class BECCS_Plant:
+class BeccsPlant:
     """Represents a biomass CCS plant
 
     POWER PLANT OPERATING CONDITIONS: Operating conditions are not modelled as uncertainties,
@@ -227,6 +227,11 @@ class BECCS_Plant:
     Qheat_output_invest : float
     Operating_hours : float
     CO2capture_rate : float
+
+    Attributes
+    ----------
+    CO2captured: float
+    OPEX_power_plant: float
     """
 
     Qbiomass_input: float = 362  # [MW]
@@ -247,6 +252,49 @@ class BECCS_Plant:
     CO2captured = CO2capture_rate * Qbiomass_input * Operating_hours * (1 - 0.05)
     # [EUR/year], see full article for these operational costs.
     OPEX_power_plant = 29000 * Qbiomass_input + 0.5 * Operating_hours * Qbiomass_input
+
+
+def calculate_cash_flow(
+    year_index: int,
+    plant: BeccsPlant,
+    electricity_price: list,
+    heat_price: list,
+    biomass_price: list,
+    wait: bool = True,
+) -> float:
+    """Calculate the cash flow
+
+    Arguments
+    ---------
+    year_index: int
+    plant: BeccsPlant
+    electricity_price: list
+    heat_price: list
+    biomass_price: list
+    wait: bool, default=True
+        Wait if True, Invest if False
+
+    Returns
+    -------
+    float
+    """
+    if wait == True:
+        power_output = plant.Wpower_output_wait
+        heat_output = plant.Qheat_output_wait
+    elif wait == False:
+        power_output = plant.Wpower_output_invest
+        heat_output = plant.Qheat_output_invest
+
+    biomass_input = plant.Qbiomass_input
+    operating_hours = plant.Operating_hours
+    opex = plant.OPEX_power_plant
+
+    cash_flow = (
+        power_output * electricity_price[year_index]
+        + heat_output * heat_price[year_index]
+        - biomass_input * biomass_price
+    ) * operating_hours - opex
+    return cash_flow
 
 
 def BECCS_investment(
@@ -275,23 +323,7 @@ def BECCS_investment(
     yCLAIM=2026,
 ):
 
-    # POWER PLANT OPERATING CONDITIONS:
-    # Operating conditions are not modelled as uncertainties, as they are routinely managed by the power
-    # plant operators. Refer to full article for data sources.
-    Qbiomass_input = 362  # [MW]
-    Wpower_output_wait = 110  # [MW]
-    Qheat_output_wait = 287  # [MW]
-    Wpower_output_invest = 53  # [MW]
-    Qheat_output_invest = 337  # [MW]
-
-    Operating_hours = 8760 * 0.7  # [h], rule of thumb of ~70 % operating hours/year.
-    CO2capture_rate = 0.3  # [tCO2/MWh_biomass]
-    CO2captured = (
-        CO2capture_rate * Qbiomass_input * Operating_hours * (1 - 0.05)
-    )  # [tCO2/year], about 5 % of CO2 is leaked across the value chain.
-    OPEX_power_plant = (
-        29000 * Qbiomass_input + 0.5 * Operating_hours * Qbiomass_input
-    )  # [EUR/year], see full article for these operational costs.
+    plant = BeccsPlant()
 
     # CALCULATE ENERGY/CO2 PRICES FOR THIS SOW:
     # Helping functions are used to construct pseudo-random energy and CO2 price projections. The
@@ -323,62 +355,16 @@ def BECCS_investment(
     pETS = find_pETS(pETS_2024, pETS_dt, pmaximum_increase=40, pmaximum_decrease=-40)
     # It is now possible to calculate NPV values!
 
-    def calculate_cash_flow(
-        year_index: int,
-        power_output: float,
-        electricity_price: list,
-        heat_output: float,
-        heat_price: list,
-        biomass_input: float,
-        biomass_price: list,
-        operating_hours: float,
-        opex: float,
-    ) -> float:
-        """Calculate the cash flow
-
-        Arguments
-        ---------
-        year_index: int
-        power_output: float
-        electricity_price: list
-        heat_output: float
-        heat_price: list
-        biomass_input: float
-        biomass_price: list
-        operating_hours: float
-        opex: float
-
-        Returns
-        -------
-        float
-        """
-        cash_flow = (
-            power_output * electricity_price[year_index]
-            + heat_output * heat_price[year_index]
-            - biomass_input * biomass_price
-        ) * operating_hours - opex
-        return cash_flow
-
     # CALCULATE CASH FLOWS BASED ON BOTH INVESTMENT DECISIONS:
     # (1) calculate NPV for not investing, i.e. Waiting:
     CFvec_wait = []
 
     NPV_wait = 0
     for t in range(0, 27):
-        CF = calculate_cash_flow(
-            t,
-            Wpower_output_wait,
-            pelectricity,
-            Qheat_output_wait,
-            pheat,
-            Qbiomass_input,
-            pbiomass,
-            Operating_hours,
-            OPEX_power_plant,
-        )
+        CF = calculate_cash_flow(t, plant, pelectricity, pheat, pbiomass, wait=True)
         if 2023 + t >= yBIOban:
             CF -= (
-                CO2captured * pETS[t]
+                plant.CO2captured * pETS[t]
             )  # yBIOban represents a severe restriction of biomass usage, forcing the utility to pay for emission allowances for CO2 not captured.
         NPV_wait += CF / ((1 + Discount_rate) ** t)
         CFvec_wait.append(CF)
@@ -394,17 +380,7 @@ def BECCS_investment(
     # First two years we pay CAPEX, and we do not have revenues from NEs.
     for t in range(0, 2):
         CF = (
-            calculate_cash_flow(
-                t,
-                Wpower_output_wait,
-                pelectricity,
-                Qheat_output_wait,
-                pheat,
-                Qbiomass_input,
-                pbiomass,
-                Operating_hours,
-                OPEX_power_plant,
-            )
+            calculate_cash_flow(t, plant, pelectricity, pheat, pbiomass, wait=True)
             - CAPEX / 2
         )
 
@@ -419,28 +395,21 @@ def BECCS_investment(
 
     for t in range(2, 27):
         CFenergy = calculate_cash_flow(
-            t,
-            Wpower_output_invest,
-            pelectricity,
-            Qheat_output_invest,
-            pheat,
-            Qbiomass_input,
-            pbiomass,
-            Operating_hours,
-            OPEX_power_plant,
+            t, plant, pelectricity, pheat, pbiomass, wait=False
         )
         # This is the energy penalty incurred by the CAPEX investment.
         CFenergy_IRR = (
             -(
-                (Wpower_output_wait - Wpower_output_invest) * pelectricity[t]
-                + (Qheat_output_wait - Qheat_output_invest) * pheat[t]
+                (plant.Wpower_output_wait - plant.Wpower_output_invest)
+                * pelectricity[t]
+                + (plant.Qheat_output_wait - plant.Qheat_output_invest) * pheat[t]
             )
-            * Operating_hours
+            * plant.Operating_hours
         )
 
         Cost_specific = (
             (OPEX_variable + Cost_transportation + Cost_storage)
-            + OPEX_fixed / CO2captured
+            + OPEX_fixed / plant.CO2captured
         ) * (1 - Learning_rate * (t - 2))
         # Now, what is the maximum NE price we can sell to in this SOW? Answer: the highest of the VCM price, and prices achieved from uncertain policy support:
         pNE_max = pNE[t]
@@ -459,10 +428,10 @@ def BECCS_investment(
         # It is now possible to calculate cash flows from the maximum pNE offered, CFCO2.
         # However: we can not sell NEs (i.e. price is set to zero) if EU severely restricts biomass usage (yBIOban), or if we can't claim NEs (yCLAIM):
         if (2024 + t < yBIOban) and (2024 + t > yCLAIM):
-            CFCO2 = pNE_max * CO2captured - (Cost_specific * CO2captured)
+            CFCO2 = pNE_max * plant.CO2captured - (Cost_specific * plant.CO2captured)
         else:
             pNE_max = 0
-            CFCO2 = pNE_max * CO2captured - (Cost_specific * CO2captured)
+            CFCO2 = pNE_max * plant.CO2captured - (Cost_specific * plant.CO2captured)
 
         # Now when cash flows from energy and CO2 is known, NPV of Investing can be calculated:
         CF = CFenergy + CFCO2
@@ -472,7 +441,7 @@ def BECCS_investment(
         CFIRR = CFenergy_IRR + CFCO2
         # When calculating IRR of Investing, we sometimes avoid ETS costs.
         if 2023 + t >= yBIOban:
-            CFIRR += CO2captured * pETS[t]
+            CFIRR += plant.CO2captured * pETS[t]
 
         CFvec.append(CF)
         CFvec_IRR.append(CFIRR)
