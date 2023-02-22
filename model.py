@@ -52,23 +52,35 @@ import random
 
 ## DEFINE HELPING FUNCTIONS:
 def find_pNE(pNE, pNE_dt, pfloor, proof, pmaximum_increase, pmaximum_decrease):
+    """Create a randomised price trajectory for emissions
+
+    Arguments
+    ---------
+    pNE : float
+    pNE_dt : float
+        Randomisation factor in range [-1, +1].
+        -1 means low values preferred.
+        +1 high values preferred
+    pfloor : float
+        Price floor
+    proof : float
+        Price roof
+    pmaximum_increase : float
+    pmaximum_decrease : float
+    """
     # Translates pNE_dt to an alpha/beta value:
-    x = pNE_dt
-    alpha = (1.4 - 0.6) / 2 * (
-        x + 1
-    ) + 0.6  # These rows determine the "strength" of the _dt uncertainty. Can be experimented with to explore other price paths.
-    beta = (0.6 - 1.4) / 2 * (x + 1) + 1.4
+    # These rows determine the "strength" of the _dt uncertainty. Can be experimented with to explore other price paths.
+    alpha = (1.4 - 0.6) / 2 * (pNE_dt + 1) + 0.6
+    beta = (0.6 - 1.4) / 2 * (pNE_dt + 1) + 1.4
 
     pNE_vec = []
     for t in range(0, 27):
         pNE_vec.append(pNE)
-        variance = random.betavariate(
-            alpha * 1.4, beta * 1
-        )  # This is how much the price change will be scaled, from this year to the next...
+        # This is how much the price change will be scaled, from this year to the next...
+        variance = random.betavariate(alpha * 1.4, beta * 1)
 
-        if (
-            pNE + pmaximum_increase > proof
-        ):  # ... unless we hit a price roof/floor! Then adjust price accordingly.
+        # ... unless we hit a price roof/floor! Then adjust price accordingly.
+        if pNE + pmaximum_increase > proof:
             pvariance = (
                 pmaximum_decrease + ((proof - pNE) - pmaximum_decrease) * variance
             )
@@ -85,9 +97,26 @@ def find_pNE(pNE, pNE_dt, pfloor, proof, pmaximum_increase, pmaximum_decrease):
     return pNE_vec
 
 
+# TODO: Combine or inherit from pNE as the approach is identical
 def find_penergy(
     pelectricity, pelectricity_dt, pfloor, proof, pmaximum_increase, pmaximum_decrease
 ):
+    """Create a randomised price trajectory for electricity
+
+    Arguments
+    ---------
+    pelectricity : float
+    pelectricity_dt : float
+        Randomisation factor in range [-1, +1].
+        -1 means low values preferred.
+        +1 high values preferred
+    pfloor : float
+        Price floor
+    proof : float
+        Price roof
+    pmaximum_increase : float
+    pmaximum_decrease : float
+    """
     # Works just like find_pNE()
     x = pelectricity_dt
     alpha = (1.7 - 0.3) / 2 * (x + 1) + 0.3
@@ -120,8 +149,23 @@ def find_penergy(
 
 
 def find_pETS(pETS_2024, pETS_dt, pmaximum_increase, pmaximum_decrease):
-    # Works similar to find_pNE(), but pETS_dt is translated into a value between 0.6 and 1.5.
-    # This sets the strength of the exponential increase of pETS. Hard-coded values can be changed, if desired.
+    """Create a randomised price trajectory for electricity
+
+    Arguments
+    ---------
+    pETS_2024 : float
+    pETS_dt : float
+        Randomisation factor in range [-1, +1].
+        -1 means low values preferred.
+        +1 high values preferred
+    pmaximum_increase : float
+    pmaximum_decrease : float
+
+    Notes
+    -----
+    Works similar to find_pNE(), but pETS_dt is translated into a value between 0.6 and 1.5.
+    This sets the strength of the exponential increase of pETS. Hard-coded values can be changed, if desired.
+    """
     x = (1.5 - 0.6) / 2 * (pETS_dt + 1) + 0.6
     pETS_vec = [pETS_2024]
     for t in range(1, 27):
@@ -208,13 +252,45 @@ def BECCS_investment(
         pmaximum_decrease=-40,
     )
     pETS = find_pETS(pETS_2024, pETS_dt, pmaximum_increase=40, pmaximum_decrease=-40)
-    pbiomass = pbiomass  # Already defined, restated for clarity.
     # It is now possible to calculate NPV values!
+
+    def calculate_cash_flow(
+        year_index: int,
+        power_output: float,
+        electricity_price: list,
+        heat_output: float,
+        heat_price: list,
+        biomass_input: float,
+        biomass_price: list,
+        operating_hours: float,
+        opex: float,
+    ):
+        """Calculate the cash flow
+
+        Arguments
+        ---------
+        year_index: int
+        power_output: float
+        electricity_price: list
+        heat_output: float
+        heat_price: list
+        biomass_input: float
+        biomass_price: list
+        operating_hours: float
+        opex: float
+        """
+        cash_flow = (
+            power_output * electricity_price[year_index]
+            + heat_output * heat_price[year_index]
+            - biomass_input * biomass_price[year_index]
+        ) * operating_hours - opex
+        return cash_flow
 
     # CALCULATE CASH FLOWS BASED ON BOTH INVESTMENT DECISIONS:
     # (1) calculate NPV for not investing, i.e. Waiting:
-    NPV_wait = 0
     CFvec_wait = []
+
+    NPV_wait = 0
     for t in range(0, 27):
         CF = (
             Wpower_output_wait * pelectricity[t]
@@ -328,10 +404,8 @@ def BECCS_investment(
     if math.isnan(IRR):
         IRR = 0
 
+    # Now the calculation model is done!
     return (pNE_mean, NPV_invest, Regret, NPV_wait, IRR, pelectricity_mean, pheat_mean)
-
-
-# Now the calculation model is done!
 
 
 def return_model() -> Model:
