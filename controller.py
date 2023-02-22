@@ -25,10 +25,6 @@ from model import return_model
 POLICY = {"investment_decision": 1}
 
 
-def create_model() -> Model:
-    return return_model()
-
-
 def create_empty_excel_workbook_for_results() -> openpyxl.Workbook:
     return openpyxl.Workbook()
 
@@ -239,7 +235,7 @@ def main():
     """Conduct analysis"""
     workbook = create_empty_excel_workbook_for_results()
 
-    model = create_model()
+    model = return_model()
     model_results = evaluate_model(model)
     save_model_results(workbook, model_results)
     plot_results(model, model_results)
