@@ -259,7 +259,7 @@ def calculate_cash_flow(
     plant: BeccsPlant,
     electricity_price: list,
     heat_price: list,
-    biomass_price: list,
+    biomass_price: float,
     wait: bool = True,
 ) -> float:
     """Calculate the cash flow
@@ -270,7 +270,7 @@ def calculate_cash_flow(
     plant: BeccsPlant
     electricity_price: list
     heat_price: list
-    biomass_price: list
+    biomass_price: float
     wait: bool, default=True
         Wait if True, Invest if False
 

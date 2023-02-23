@@ -12,14 +12,15 @@ __author__ = "Oscar Stenström"
 __date__ = "2023-02-16"
 
 from scipy.optimize import brentq as root
-from rhodium import scatter2d, Cart, pairs
+from rhodium import scatter2d, Cart, pairs, DataSet, Model
 import csv
 import openpyxl
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
+from typing import List, Dict
 
 
-def plot_results(model, model_results):
+def plot_results(model: Model, model_results: DataSet):
     ## BELOW IS A MIX OF RESULTS ANALYSIS AND PLOTTING
     print("-------------BEGIN RESPONSE PLOTTING NOW-------------")
     fig = scatter2d(model, model_results, x="NPV_wait", y="NPV_invest", c="Regret")
@@ -38,6 +39,9 @@ def plot_results(model, model_results):
     pairs(model, model_results, brush=["Regret > 0", "Regret == 0"])
     plt.savefig("2_Responses_pair.png")
 
+
+def robustness_analysis(model_results: DataSet):
+    """Prints robustness analytics to the terminal"""
     print("-------------BEGIN ROBUSTNESS ANALYSIS NOW-------------")
     # How robust is Invest and Wait, using the satisficing (absolute) domain criteria?
     invest_satisficing = model_results.find("NPV_invest>0")
@@ -67,7 +71,7 @@ def plot_results(model, model_results):
     print("Waiting has maximum regret ", max(wait_regret_vec), " EUR")
 
 
-def scenario_discovery(model, model_results) -> list:
+def scenario_discovery(model: Model, model_results: DataSet) -> list:
     # The scenario discovery produces ranges of uncertainties (i.e. scenarios) where Invest performs well (i.e. have Regret = 0).
     print("-------------BEGIN SCENARIO DISCOVERY NOW-------------")
     classification = model_results.apply("'Reliable' if Regret == 0 else 'Unreliable'")
@@ -87,9 +91,9 @@ def scenario_discovery(model, model_results) -> list:
     return node_list
 
 
-def save_model_results(RDM_results_excel: openpyxl.Workbook, model_results):
+def save_model_results(RDM_results_excel: openpyxl.Workbook, model_results: DataSet):
     model_results.save("RDM_raw_results.csv")
-    sheet = RDM_results_excel.active
+    sheet = RDM_results_excel.active  # typing: openpyxl.worksheet.worksheet.Worksheet
     sheet.title = "Results for each SOW"
     with open(
         "RDM_raw_results.csv"
@@ -120,7 +124,7 @@ def save_scenario_discovery(node_list: list, RDM_results_excel: openpyxl.Workboo
                 sheet.cell(row=i + 2, column=j + 5).value = rule
 
 
-def plot_scenario_of_interest(model, model_results):
+def plot_scenario_of_interest(model: Model, model_results: DataSet):
     # The Rules (uncertainty ranges) of a scenario node of interest (as found in the CART_results sheet) can be illustrated.
     # This is done by drawing a scenario rectangle representing these uncertainty ranges. The resulting "box" then graphically
     # represents a discovered scenario. The drawing is hard coded and can be changed as desired, depending on the scenario of interest.
@@ -138,7 +142,9 @@ def plot_scenario_of_interest(model, model_results):
     fig.savefig("4_CART_area.png")
 
 
-def save_sensitivity_analysis(model, sobol_result, RDM_results_excel):
+def save_sensitivity_analysis(
+    model: Model, sobol_result, RDM_results_excel: openpyxl.Workbook
+):
     # Save Sobol results to a CART excel sheet:
     sheet = RDM_results_excel.create_sheet("Sobol_results")
     RDM_results_excel.active = RDM_results_excel["Sobol_results"]
@@ -189,7 +195,7 @@ def plot_sensitivity_analysis_results(sobol_result):
     fig.savefig("3_Sobol_spider.png")
 
 
-def plot_critical_uncertainties(model, model_results):
+def plot_critical_uncertainties(model: Model, model_results: DataSet):
     # Below one can plot the critical uncertainties (i.e. with high total sensitivity indices), to see how these affect Regret.
     fig = scatter2d(model, model_results, x="yCLAIM", y="yBIOban", c="Regret")
     fig.savefig("3_Sobol_Us.png")
