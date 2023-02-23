@@ -322,6 +322,14 @@ def BECCS_investment(
     yBIOban=2051,
     yCLAIM=2026,
 ):
+    """Calculate regret and other metrics for two strategies "wait" or "invest" for a SOW
+
+    Notes
+    -----
+    First generates price trajectories
+    Then computes NPV for wait and invest strategies
+    Finally, computes metrics
+    """
 
     plant = BeccsPlant()
 
@@ -411,7 +419,8 @@ def BECCS_investment(
             (OPEX_variable + Cost_transportation + Cost_storage)
             + OPEX_fixed / plant.CO2captured
         ) * (1 - Learning_rate * (t - 2))
-        # Now, what is the maximum NE price we can sell to in this SOW? Answer: the highest of the VCM price, and prices achieved from uncertain policy support:
+        # Now, what is the maximum NE price we can sell to in this SOW?
+        # Answer: the highest of the VCM price, and prices achieved from uncertain policy support:
         pNE_max = pNE[t]
         # If quota obligations (yQUOTA) exist, NE price is assumed to be _at least_ equal to the specific cost.
         if 2024 + t >= yQUOTA:
