@@ -39,6 +39,11 @@ def plot_results(model: Model, model_results: DataSet):
     pairs(model, model_results, brush=["Regret > 0", "Regret == 0"])
     plt.savefig("2_Responses_pair.png")
 
+    plt.clf()
+    fig = scatter2d(
+        model, model_results, x="yCLAIM", y="pNE_mean", c="Regret"
+    )
+    fig.savefig("2_test.png")
 
 def robustness_analysis(model_results: DataSet):
     """Prints robustness analytics to the terminal"""
@@ -81,7 +86,7 @@ def scenario_discovery(model: Model, model_results: DataSet) -> list:
         include=model.uncertainties.keys(),
         min_samples_leaf=50,
     )
-    # c.show_tree()
+    cart_results.show_tree()
     cart_results.save("4_CART_tree.png")
     node_list = cart_results.print_tree(
         coi="Reliable"
@@ -167,6 +172,8 @@ def save_sensitivity_analysis(
 
 
 def plot_sensitivity_analysis_results(sobol_result):
+    #NOTE: can comment out the print, if desired.
+    print(sobol_result) 
     plt.clf()
     fig = sobol_result.plot_sobol(
         radSc=1.9,
@@ -174,7 +181,7 @@ def plot_sensitivity_analysis_results(sobol_result):
         threshold=0.015,
         groups={
             "Commodity prices": [
-                "pNE_2024",
+                "pNE",
                 "pNE_dt",
                 "pbiomass",
                 "pETS_2024",
@@ -198,4 +205,13 @@ def plot_sensitivity_analysis_results(sobol_result):
 def plot_critical_uncertainties(model: Model, model_results: DataSet):
     # Below one can plot the critical uncertainties (i.e. with high total sensitivity indices), to see how these affect Regret.
     fig = scatter2d(model, model_results, x="yCLAIM", y="yBIOban", c="Regret")
-    fig.savefig("3_Sobol_Us.png")
+    fig.savefig("3_Sobol_Us1.png")
+    plt.clf()
+    fig = scatter2d(model, model_results, x="yCLAIM", y="pelectricity", c="Regret")
+    fig.savefig("3_Sobol_Us2.png")
+    plt.clf()
+    fig = scatter2d(model, model_results, x="yCLAIM", y="AUCTION", c="Regret")
+    fig.savefig("3_Sobol_Us3.png")
+    plt.clf()
+    fig = scatter2d(model, model_results, x="yCLAIM", y="pNE", c="Regret") #pNE > 130.355301 and yCLAIM <= 2030.623657 has 98%density, 30%coverage
+    fig.savefig("4_CART_test.png")

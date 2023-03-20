@@ -80,6 +80,19 @@ def calculate_regret(
 
     return Regret
 
+def find_sell_prices(pmean, pvolatility, pfloor):
+    # TODO: change pvolatility to be %-based instead. Makes it more flexible.
+    pvec = []
+    for t in range(0,27):
+        # Hur mycket ska vi ändra pmean? Kör taket 160+40. Men floor?
+        pchange = random.uniform(-pvolatility,pvolatility)
+        if pmean + pchange < pfloor:
+            pnew = pfloor
+        else:
+            pnew = pmean + pchange
+        pvec.append(pnew)
+    return pvec
+
 
 def find_pNE(pNE, pNE_dt, pfloor, proof, pmaximum_increase, pmaximum_decrease):
     """Create a randomised price trajectory for emissions
@@ -300,12 +313,12 @@ def calculate_cash_flow(
 def BECCS_investment(
     investment_decision,
     # Set some nominal values as function inputs, as desired.
-    pelectricity_2024=50,  # [EUR/MWh]
-    pheat_2024=50,  # [EUR/MWh]
-    pNE_2024=30,  # [EUR/tCO2]
+    pelectricity=50,  # [EUR/MWh]
+    pheat=50,  # [EUR/MWh]
+    pNE=30,  # [EUR/tCO2]
     pETS_2024=80,  # [EUR/tCO2]
     pbiomass=25,  # [EUR/MWh]
-    pelectricity_dt=0.4,  # -1 to 0.4,   sets likelihood of price increase/reduction
+    pelectricity_dt=0.4,  # -1 to 0.4,   sets likelihood of price increase/reduction #NOTE: CHANGE THIS
     pheat_dt=-0.5,  # -0.5 to 0.7, sets likelihood of price increase/reduction
     pNE_dt=0.3,  # -1 to +1,    sets likelihood of price increase/reduction
     pETS_dt=0,  # -1 to +1,    sets exponential increase in ETS prices
@@ -336,29 +349,21 @@ def BECCS_investment(
     # CALCULATE ENERGY/CO2 PRICES FOR THIS SOW:
     # Helping functions are used to construct pseudo-random energy and CO2 price projections. The
     # probabilities of price increases/decreases are influenced by the _dt parameters.
-    pelectricity = find_penergy(
-        pelectricity_2024,
+
+    pelectricity = find_sell_prices(
+        pelectricity,
         pelectricity_dt,
         pfloor=5,
-        proof=200,
-        pmaximum_increase=40,
-        pmaximum_decrease=-40,
     )
-    pheat = find_penergy(
-        pheat_2024,
+    pheat = find_sell_prices(
+        pheat,
         pheat_dt,
         pfloor=48,
-        proof=200,
-        pmaximum_increase=10,
-        pmaximum_decrease=-10,
     )
-    pNE = find_pNE(
-        pNE_2024,
+    pNE = find_sell_prices(
+        pNE,
         pNE_dt,
         pfloor=3,
-        proof=500,
-        pmaximum_increase=40,
-        pmaximum_decrease=-40,
     )
     pETS = find_pETS(pETS_2024, pETS_dt, pmaximum_increase=40, pmaximum_decrease=-40)
     # It is now possible to calculate NPV values!
@@ -476,13 +481,14 @@ def return_model() -> Model:
     model = Model(BECCS_investment)
     model.parameters = [
         Parameter("investment_decision"),
-        Parameter("pNE_2024"),
+        Parameter("pNE"),
         Parameter("pNE_dt"),
-        Parameter("pelectricity_2024"),
+        Parameter("pelectricity"),
         Parameter("pelectricity_dt"),
-        Parameter("pheat_2024"),
+        Parameter("pheat"),
         Parameter("pheat_dt"),
         Parameter("pbiomass"),
+
         Parameter("pETS_2024"),
         Parameter("pETS_dt"),
         Parameter("Discount_rate"),
@@ -492,6 +498,7 @@ def return_model() -> Model:
         Parameter("Cost_transportation"),
         Parameter("Cost_storage"),
         Parameter("Learning_rate"),
+        
         Parameter("AUCTION"),
         Parameter("yQUOTA"),
         Parameter("yEUint"),
@@ -513,9 +520,14 @@ def return_model() -> Model:
 
     # For uncertainties, some are expanded ranges around values found in the literature, and some are assumed. Refer to full article.
     model.uncertainties = [
-        UniformUncertainty("pNE_2024", 20, 140),
-        UniformUncertainty("pNE_dt", -1, 1),
+        UniformUncertainty("pNE", 20, 400),
+        UniformUncertainty("pNE_dt", 5, 40),
         UniformUncertainty("pbiomass", 15, 35),
+        UniformUncertainty("pelectricity",5,160),
+        UniformUncertainty("pelectricity_dt",5,40),
+        UniformUncertainty("pheat",50, 150),
+        UniformUncertainty("pheat_dt",1,20),
+
         UniformUncertainty("pETS_2024", 60, 100),
         UniformUncertainty("pETS_dt", -1, 1),
         UniformUncertainty("Discount_rate", 0.04, 0.10),
@@ -525,6 +537,7 @@ def return_model() -> Model:
         UniformUncertainty("Cost_transportation", 17, 27),
         UniformUncertainty("Cost_storage", 6, 23),
         UniformUncertainty("Learning_rate", 0.0075, 0.0125),
+
         UniformUncertainty("AUCTION", 0, 1),
         UniformUncertainty("yQUOTA", 2030, 2050),
         UniformUncertainty("yEUint", 2035, 2050),
