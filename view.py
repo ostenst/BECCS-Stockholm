@@ -41,7 +41,7 @@ def plot_results(model: Model, model_results: DataSet):
 
     plt.clf()
     fig = scatter2d(
-        model, model_results, x="yCLAIM", y="pNE_mean", c="Regret"
+        model, model_results, x="yCLAIM", y="pNE", c="Regret"
     )
     fig.savefig("2_test.png")
 
