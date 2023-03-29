@@ -196,7 +196,11 @@ class Cart(object):
         return self._to_string()
         
     def print_tree(self, coi=None, all=True, **kwargs):
-        #print(self._to_string(coi, all, **kwargs)) GAMMAL RAD. NYA RADER:
+        # Being unfamiliar with version control, I just added "#", or comments, in places where I made changes to the original Rhodium code.
+        # Below is the unaltered (although commented out):
+        #print(self._to_string(coi, all, **kwargs))
+
+        # But it does not return a list of the scenario nodes, which we would like. So I made alterations to the _to_string() function to achieve this:
         results, node_list = self._to_string(coi, all, **kwargs)
         print(results) 
         return node_list #
@@ -238,7 +242,8 @@ class Cart(object):
                 return lineage
             else:
                 return recurse(left, right, parent, lineage)
-        #Rekursivt anrop är här klart!
+            
+        # NOTE: This is where I added a child_list, where each scenario node should be added. Each child/scenario node is a dict. Probably, there exists more elegant solutions.
         child_list = [] #
         for child in idx:
             child_dict = {} #
@@ -255,19 +260,21 @@ class Cart(object):
                     coverage = ncoi/sum([1 if yi in coi else 0 for yi in self._y])
                     result += "    Density: %.2f%%\n" % (100*density,)
                     result += "    Coverage: %.2f%%\n" % (100*coverage,)  
+                # Below is original code (commented out). I split it up into two lines, to be able to save the rules of each child/scenario node in a separate vector.
                 #result += "    Rule: " + " and\n          ".join(self._collapse_bounds(recurse(left, right, child), feature_names))   
-                #^Gammal kodrad. Nya kodrader:
                 rules_vec = self._collapse_bounds(recurse(left, right, child), feature_names) #
                 child_dict["Rules"] = rules_vec #
                 result += "    Rule: " + " and\n          ".join(rules_vec) #
 
-                #Lägg till alla andra nodattribut:
+                # Now it is easy to just store the rest of the scenario data, and append the scenario node.
                 child_dict["Node"]      = str(child)
                 child_dict["Class"]     = str(classes[child])
                 child_dict["Density"]   = str(100*density)
                 child_dict["Coverage"]  = str(100*coverage)
                 child_list.append(child_dict)    #
 
+        # Now the code returns a list of the scenario nodes, which was what we wanted! But since I do not understand this code completely (e.g. isinstance(), the recursive calls, 
+        # or _collapse_bounds()) it is tricky to write up a smarter/more elegant solution.
         return result, child_list #
                 
     def _collapse_bounds(self, rules, keys):
