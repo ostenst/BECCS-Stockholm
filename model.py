@@ -313,9 +313,9 @@ def calculate_cash_flow(
 def BECCS_investment(
     investment_decision,
     # Set some nominal values as function inputs, as desired.
-    pelectricity=50,  # [EUR/MWh]
-    pheat=50,  # [EUR/MWh]
-    pNE=30,  # [EUR/tCO2]
+    pelectricity_mean=50,  # [EUR/MWh]
+    pheat_mean=50,  # [EUR/MWh]
+    pNE_mean=30,  # [EUR/tCO2]
     pETS_2024=80,  # [EUR/tCO2]
     pbiomass=25,  # [EUR/MWh]
     pelectricity_dt=0.4,  # -1 to 0.4,   sets likelihood of price increase/reduction #NOTE: CHANGE THIS
@@ -351,17 +351,17 @@ def BECCS_investment(
     # probabilities of price increases/decreases are influenced by the _dt parameters.
 
     pelectricity = find_sell_prices(
-        pelectricity,
+        pelectricity_mean,
         pelectricity_dt,
         pfloor=5,
     )
     pheat = find_sell_prices(
-        pheat,
+        pheat_mean,
         pheat_dt,
         pfloor=48,
     )
     pNE = find_sell_prices(
-        pNE,
+        pNE_mean,
         pNE_dt,
         pfloor=3,
     )
@@ -462,18 +462,18 @@ def BECCS_investment(
         pNE_supported.append(pNE_max)
     # Now NPV (and IRR) is known for the Invest strategy!
 
-    regret = calculate_regret(NPV_invest, NPV_wait, investment_decision)
+    Regret = calculate_regret(NPV_invest, NPV_wait, investment_decision)
 
     ## CALCULATE OTHER INTERESTING PARAMETERS:
-    pelectricity_mean = np.mean(pelectricity)
-    pheat_mean = np.mean(pheat)
-    pNE_mean = np.mean(pNE_supported)
+    # pelectricity_mean = np.mean(pelectricity)
+    # pheat_mean = np.mean(pheat)
+    # pNE_mean = np.mean(pNE_supported) # THIS IS OUTDATED
     IRR = npf.irr(CFvec_IRR)
     if math.isnan(IRR):
         IRR = 0
 
     # Now the calculation model is done!
-    return (pNE_mean, NPV_invest, regret, NPV_wait, IRR, pelectricity_mean, pheat_mean)
+    return (NPV_invest, Regret, NPV_wait, IRR, pelectricity, pheat, pNE)
 
 
 def return_model() -> Model:
@@ -481,11 +481,11 @@ def return_model() -> Model:
     model = Model(BECCS_investment)
     model.parameters = [
         Parameter("investment_decision"),
-        Parameter("pNE"),
+        Parameter("pNE_mean"),
         Parameter("pNE_dt"),
-        Parameter("pelectricity"),
+        Parameter("pelectricity_mean"),
         Parameter("pelectricity_dt"),
-        Parameter("pheat"),
+        Parameter("pheat_mean"),
         Parameter("pheat_dt"),
         Parameter("pbiomass"),
 
@@ -507,25 +507,25 @@ def return_model() -> Model:
     ]
 
     model.responses = [
-        Response("pNE_mean", Response.INFO),
         Response("NPV_invest", Response.MAXIMIZE),
         Response("Regret", Response.MINIMIZE),
         Response("NPV_wait", Response.MAXIMIZE),
         Response("IRR", Response.MAXIMIZE),
-        Response("pelectricity_mean", Response.INFO),
-        Response("pheat_mean", Response.INFO),
+        Response("pelectricity", Response.INFO),
+        Response("pheat", Response.INFO),
+        Response("pNE", Response.INFO),
     ]
 
     model.levers = [RealLever("investment_decision", 0, 1, length=2)]
 
     # For uncertainties, some are expanded ranges around values found in the literature, and some are assumed. Refer to full article.
     model.uncertainties = [
-        UniformUncertainty("pNE", 20, 400),
+        UniformUncertainty("pNE_mean", 20, 400),
         UniformUncertainty("pNE_dt", 5, 40),
         UniformUncertainty("pbiomass", 15, 35),
-        UniformUncertainty("pelectricity",5,160),
+        UniformUncertainty("pelectricity_mean",5,160),
         UniformUncertainty("pelectricity_dt",5,40),
-        UniformUncertainty("pheat",50, 150),
+        UniformUncertainty("pheat_mean",50, 150),
         UniformUncertainty("pheat_dt",1,20),
 
         UniformUncertainty("pETS_2024", 60, 100),

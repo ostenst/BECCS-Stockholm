@@ -41,9 +41,11 @@ def plot_results(model: Model, model_results: DataSet):
 
     plt.clf()
     fig = scatter2d(
-        model, model_results, x="yCLAIM", y="pNE", c="Regret"
+        model, model_results, x="yCLAIM", y="pNE_mean", c="Regret"
     )
     fig.savefig("2_test.png")
+
+    
 
 def robustness_analysis(model_results: DataSet):
     """Prints robustness analytics to the terminal"""
@@ -106,7 +108,6 @@ def save_model_results(RDM_results_excel: openpyxl.Workbook, model_results: Data
         reader = csv.reader(f, delimiter=":")
         for row in reader:
             sheet.append(row)
-
 
 def save_scenario_discovery(node_list: list, RDM_results_excel: openpyxl.Workbook):
     # Save discovered scenarios (in the node_list) to a CART excel sheet:
@@ -181,7 +182,7 @@ def plot_sensitivity_analysis_results(sobol_result):
         threshold=0.015,
         groups={
             "Commodity prices": [
-                "pNE",
+                "pNE_mean",
                 "pNE_dt",
                 "pbiomass",
                 "pETS_2024",
@@ -207,11 +208,11 @@ def plot_critical_uncertainties(model: Model, model_results: DataSet):
     fig = scatter2d(model, model_results, x="yCLAIM", y="yBIOban", c="Regret")
     fig.savefig("3_Sobol_Us1.png")
     plt.clf()
-    fig = scatter2d(model, model_results, x="yCLAIM", y="pelectricity", c="Regret")
+    fig = scatter2d(model, model_results, x="yCLAIM", y="pelectricity_mean", c="Regret")
     fig.savefig("3_Sobol_Us2.png")
     plt.clf()
     fig = scatter2d(model, model_results, x="yCLAIM", y="AUCTION", c="Regret")
     fig.savefig("3_Sobol_Us3.png")
     plt.clf()
-    fig = scatter2d(model, model_results, x="yCLAIM", y="pNE", c="Regret") #pNE > 130.355301 and yCLAIM <= 2030.623657 has 98%density, 30%coverage
+    fig = scatter2d(model, model_results, x="yCLAIM", y="pNE_mean", c="Regret") #pNE > 130.355301 and yCLAIM <= 2030.623657 has 98%density, 30%coverage
     fig.savefig("4_CART_test.png")
