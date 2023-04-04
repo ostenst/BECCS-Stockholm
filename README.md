@@ -1,8 +1,3 @@
-# New prices branch
-In this branch, we develop a version of the model were:
-1. Energy prices are not divided into 4 trends, and are instead collected into 1 analysis.
-2. Random price trajectories (for heat, electricity, NEs and ETS) are reworked to be more interpretable.
-
 # Questions from Will
 
 - What is the start year of the analysis? Why are both 2023 and 2024 mentioned in the code?
