@@ -25,12 +25,27 @@ def plot_results(model: Model, model_results: DataSet):
     print("-------------BEGIN RESPONSE PLOTTING NOW-------------")
     fig = scatter2d(model, model_results, x="NPV_wait", y="NPV_invest", c="Regret")
     fig.savefig("2_NPV_Regret.png")
-    fig = scatter2d(model, model_results, x="pNE_mean", y="NPV_invest", c="Regret")
+    fig = scatter2d(model, model_results, x="pETS_2050", y="NPV_invest", c="Regret")
     fig.savefig("2_NPV_pNE.png")
     fig = scatter2d(
-        model, model_results, x="pheat_mean", y="pelectricity_mean", c="Regret"
+        model, model_results.find("yCLAIM>2032"), x="pETS_2050", y="pNE_supported", c="Regret"
     )
+    # ity: 76.90%
+    # Coverage: 39.98%
+    # Rule: pETS_mean <= 246.226875 and
+    #       yCLAIM > 2032.839844
     fig.savefig("2_NPV_penergy.png")
+
+    fig = scatter2d(
+        model, model_results, x="yCLAIM", y="pNE_supported", c="NPV_invest"
+    )
+    fig.savefig("2_test4.png")
+    fig = scatter2d(
+        model, model_results, x="yCLAIM", y="pNE_supported", c="Regret"
+    )
+    fig.savefig("2_test5.png")
+
+
     fig = scatter2d(
         model, model_results.find("IRR != 0"), x="pNE_mean", y="IRR", c="Regret"
     )
@@ -39,6 +54,17 @@ def plot_results(model: Model, model_results: DataSet):
     pairs(model, model_results, brush=["Regret > 0", "Regret == 0"])
     plt.savefig("2_Responses_pair.png")
 
+    plt.clf()
+    fig = scatter2d(
+        model, model_results, x="pNE_supported", y="Cost_specific", c="Regret"
+    )
+    fig.savefig("2_test.png")
+    plt.clf()
+    fig = scatter2d(
+        model, model_results, x="pNE_supported", y="Cost_specific", c="NPV_invest"
+    )
+    fig.savefig("2_test2.png")
+    
 
 def robustness_analysis(model_results: DataSet):
     """Prints robustness analytics to the terminal"""
@@ -81,7 +107,7 @@ def scenario_discovery(model: Model, model_results: DataSet) -> list:
         include=model.uncertainties.keys(),
         min_samples_leaf=50,
     )
-    # c.show_tree()
+    cart_results.show_tree()
     cart_results.save("4_CART_tree.png")
     node_list = cart_results.print_tree(
         coi="Reliable"
@@ -101,7 +127,6 @@ def save_model_results(RDM_results_excel: openpyxl.Workbook, model_results: Data
         reader = csv.reader(f, delimiter=":")
         for row in reader:
             sheet.append(row)
-
 
 def save_scenario_discovery(node_list: list, RDM_results_excel: openpyxl.Workbook):
     # Save discovered scenarios (in the node_list) to a CART excel sheet:
@@ -167,6 +192,8 @@ def save_sensitivity_analysis(
 
 
 def plot_sensitivity_analysis_results(sobol_result):
+    #NOTE: can comment out the print, if desired.
+    print(sobol_result) 
     plt.clf()
     fig = sobol_result.plot_sobol(
         radSc=1.9,
@@ -174,10 +201,10 @@ def plot_sensitivity_analysis_results(sobol_result):
         threshold=0.015,
         groups={
             "Commodity prices": [
-                "pNE_2024",
+                "pNE_mean",
                 "pNE_dt",
                 "pbiomass",
-                "pETS_2024",
+                "pETS_2050",
                 "pETS_dt",
             ],
             "BECCS valuations": [
@@ -198,4 +225,13 @@ def plot_sensitivity_analysis_results(sobol_result):
 def plot_critical_uncertainties(model: Model, model_results: DataSet):
     # Below one can plot the critical uncertainties (i.e. with high total sensitivity indices), to see how these affect Regret.
     fig = scatter2d(model, model_results, x="yCLAIM", y="yBIOban", c="Regret")
-    fig.savefig("3_Sobol_Us.png")
+    fig.savefig("3_Sobol_Us1.png")
+    plt.clf()
+    fig = scatter2d(model, model_results, x="yCLAIM", y="pelectricity_mean", c="Regret")
+    fig.savefig("3_Sobol_Us2.png")
+    plt.clf()
+    fig = scatter2d(model, model_results, x="yCLAIM", y="AUCTION", c="Regret")
+    fig.savefig("3_Sobol_Us3.png")
+    plt.clf()
+    fig = scatter2d(model, model_results, x="yCLAIM", y="pNE_mean", c="Regret") #pNE > 130.355301 and yCLAIM <= 2030.623657 has 98%density, 30%coverage
+    fig.savefig("4_CART_test.png")

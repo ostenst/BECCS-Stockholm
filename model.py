@@ -80,135 +80,59 @@ def calculate_regret(
 
     return Regret
 
-
-def find_pNE(pNE, pNE_dt, pfloor, proof, pmaximum_increase, pmaximum_decrease):
-    """Create a randomised price trajectory for emissions
-
-    Arguments
-    ---------
-    pNE : float
-    pNE_dt : float
-        Randomisation factor in range [-1, +1].
-        -1 means low values preferred.
-        +1 high values preferred
-    pfloor : float
-        Price floor
-    proof : float
-        Price roof
-    pmaximum_increase : float
-    pmaximum_decrease : float
-    """
-    # Translates pNE_dt to an alpha/beta value:
-    # These rows determine the "strength" of the _dt uncertainty. Can be experimented with to explore other price paths.
-    alpha = (1.4 - 0.6) / 2 * (pNE_dt + 1) + 0.6
-    beta = (0.6 - 1.4) / 2 * (pNE_dt + 1) + 1.4
-
-    pNE_vec = []
-    for t in range(0, 27):
-        pNE_vec.append(pNE)
-        # This is how much the price change will be scaled, from this year to the next...
-        variance = random.betavariate(alpha * 1.4, beta * 1)
-
-        # ... unless we hit a price roof/floor! Then adjust price accordingly.
-        if pNE + pmaximum_increase > proof:
-            pvariance = (
-                pmaximum_decrease + ((proof - pNE) - pmaximum_decrease) * variance
-            )
-        elif pNE + pmaximum_decrease < pfloor:
-            pvariance = (
-                -(pNE - pfloor) + (pmaximum_increase - (-(pNE - pfloor))) * variance
-            )
-        else:
-            pvariance = (
-                pmaximum_decrease + (pmaximum_increase - pmaximum_decrease) * variance
-            )
-        pNE += pvariance
-
-    return pNE_vec
-
-
-# TODO: Combine or inherit from pNE as the approach is identical
-def find_penergy(
-    pelectricity, pelectricity_dt, pfloor, proof, pmaximum_increase, pmaximum_decrease
-):
-    """Create a randomised price trajectory for electricity
+def find_pETS(pETS_2050, pETS_dt):
+    """Creates a price trajectory for EU ETS allowances
 
     Arguments
     ---------
-    pelectricity : float
-    pelectricity_dt : float
-        Randomisation factor in range [-1, +1].
-        -1 means low values preferred.
-        +1 high values preferred
-    pfloor : float
-        Price floor
-    proof : float
-        Price roof
-    pmaximum_increase : float
-    pmaximum_decrease : float
-    """
-    # Works just like find_pNE()
-    x = pelectricity_dt
-    alpha = (1.7 - 0.3) / 2 * (x + 1) + 0.3
-    beta = (0.3 - 1.7) / 2 * (x + 1) + 1.7
-
-    pelectricity_vec = []
-    for t in range(0, 27):
-        pelectricity_vec.append(pelectricity)
-        variance = random.betavariate(
-            alpha * 1, beta * 1
-        )  # *1.5 adds less random distribution, if desired.
-
-        if pelectricity + pmaximum_increase > proof:
-            pvariance = (
-                pmaximum_decrease
-                + ((proof - pelectricity) - pmaximum_decrease) * variance
-            )
-        elif pelectricity + pmaximum_decrease < pfloor:
-            pvariance = (
-                -(pelectricity - pfloor)
-                + (pmaximum_increase - (-(pelectricity - pfloor))) * variance
-            )
-        else:
-            pvariance = (
-                pmaximum_decrease + (pmaximum_increase - pmaximum_decrease) * variance
-            )
-        pelectricity += pvariance
-
-    return pelectricity_vec
-
-
-def find_pETS(pETS_2024, pETS_dt, pmaximum_increase, pmaximum_decrease):
-    """Create a randomised price trajectory for electricity
-
-    Arguments
-    ---------
-    pETS_2024 : float
+    pETS_2050 : float
     pETS_dt : float
-        Randomisation factor in range [-1, +1].
-        -1 means low values preferred.
-        +1 high values preferred
-    pmaximum_increase : float
-    pmaximum_decrease : float
+
+    Returns
+    -----
+    list
 
     Notes
     -----
-    Works similar to find_pNE(), but pETS_dt is translated into a value between 0.6 and 1.5.
-    This sets the strength of the exponential increase of pETS. Hard-coded values can be changed, if desired.
+    The price trajectory is a simple line between the ETS price in the first modelling year (about EUR 100 in 2023):
+    https://tradingeconomics.com/commodity/carbon
+    and the ETS price in the last modelling year, pETS_2050. The trajectory is perturbed by the price volatility pETS_dt.
     """
-    x = (1.5 - 0.6) / 2 * (pETS_dt + 1) + 0.6
+    pETS_2024 = 100
     pETS_vec = [pETS_2024]
-    for t in range(1, 27):
-        variance = random.betavariate(alpha=1, beta=1)
-        pvariance = (
-            pmaximum_decrease + (pmaximum_increase - pmaximum_decrease) * variance
-        )
-
-        pETS = pETS_2024 * (1 + 0.06 * x) ** t + pvariance
-        pETS_vec.append(pETS)
-
+    for t in range(1,27):
+        pETS_new = (pETS_2050-pETS_2024)/(2050-2024)*t + pETS_2024
+        pchange = random.uniform(-pETS_dt,pETS_dt)
+        pETS_new = pETS_new + pchange
+        pETS_vec.append(pETS_new)
     return pETS_vec
 
+def find_sell_prices(pmean, pvolatility, pfloor):
+    """Determines selling prices of electricity, heat and NEs
+
+    Arguments
+    ---------
+    pmean : float
+    pvolatility : float
+    pfloor : float
+    
+    Returns
+    -----
+    list
+
+    Notes
+    -----
+    The price for each year is the mean price, perturbed by the price volatility, constrained by a price floor.
+    """
+    pvec = []
+    for t in range(0,27):
+        pchange = random.uniform(-pvolatility,pvolatility)
+        if pmean + pchange < pfloor:
+            pnew = pfloor
+        else:
+            pnew = pmean + pchange
+        pvec.append(pnew)
+    return pvec
 
 @dataclass(slots=True)
 class BeccsPlant:
@@ -300,12 +224,12 @@ def calculate_cash_flow(
 def BECCS_investment(
     investment_decision,
     # Set some nominal values as function inputs, as desired.
-    pelectricity_2024=50,  # [EUR/MWh]
-    pheat_2024=50,  # [EUR/MWh]
-    pNE_2024=30,  # [EUR/tCO2]
-    pETS_2024=80,  # [EUR/tCO2]
+    pelectricity_mean=50,  # [EUR/MWh]
+    pheat_mean=50,  # [EUR/MWh]
+    pNE_mean=30,  # [EUR/tCO2]
+    pETS_2050=80,  # [EUR/tCO2]
     pbiomass=25,  # [EUR/MWh]
-    pelectricity_dt=0.4,  # -1 to 0.4,   sets likelihood of price increase/reduction
+    pelectricity_dt=0.4,  # -1 to 0.4,   sets likelihood of price increase/reduction #NOTE: CHANGE THIS
     pheat_dt=-0.5,  # -0.5 to 0.7, sets likelihood of price increase/reduction
     pNE_dt=0.3,  # -1 to +1,    sets likelihood of price increase/reduction
     pETS_dt=0,  # -1 to +1,    sets exponential increase in ETS prices
@@ -336,31 +260,25 @@ def BECCS_investment(
     # CALCULATE ENERGY/CO2 PRICES FOR THIS SOW:
     # Helping functions are used to construct pseudo-random energy and CO2 price projections. The
     # probabilities of price increases/decreases are influenced by the _dt parameters.
-    pelectricity = find_penergy(
-        pelectricity_2024,
+
+    pelectricity = find_sell_prices(
+        pelectricity_mean,
         pelectricity_dt,
         pfloor=5,
-        proof=200,
-        pmaximum_increase=40,
-        pmaximum_decrease=-40,
     )
-    pheat = find_penergy(
-        pheat_2024,
+    pheat = find_sell_prices(
+        pheat_mean,
         pheat_dt,
         pfloor=48,
-        proof=200,
-        pmaximum_increase=10,
-        pmaximum_decrease=-10,
     )
-    pNE = find_pNE(
-        pNE_2024,
+    pNE = find_sell_prices(
+        pNE_mean,
         pNE_dt,
         pfloor=3,
-        proof=500,
-        pmaximum_increase=40,
-        pmaximum_decrease=-40,
     )
-    pETS = find_pETS(pETS_2024, pETS_dt, pmaximum_increase=40, pmaximum_decrease=-40)
+    pETS = find_pETS(
+        pETS_2050, 
+        pETS_dt)
     # It is now possible to calculate NPV values!
 
     # CALCULATE CASH FLOWS BASED ON BOTH INVESTMENT DECISIONS:
@@ -457,18 +375,22 @@ def BECCS_investment(
         pNE_supported.append(pNE_max)
     # Now NPV (and IRR) is known for the Invest strategy!
 
-    regret = calculate_regret(NPV_invest, NPV_wait, investment_decision)
+    Regret = calculate_regret(NPV_invest, NPV_wait, investment_decision)
 
     ## CALCULATE OTHER INTERESTING PARAMETERS:
-    pelectricity_mean = np.mean(pelectricity)
-    pheat_mean = np.mean(pheat)
-    pNE_mean = np.mean(pNE_supported)
+    # pelectricity_mean = np.mean(pelectricity)
+    # pheat_mean = np.mean(pheat)
+    pNE_supported = np.mean(pNE_supported) # THIS IS OUTDATED
     IRR = npf.irr(CFvec_IRR)
     if math.isnan(IRR):
         IRR = 0
 
+    Cost_specific = (
+            (OPEX_variable + Cost_transportation + Cost_storage)
+            + OPEX_fixed / plant.CO2captured
+        ) 
     # Now the calculation model is done!
-    return (pNE_mean, NPV_invest, regret, NPV_wait, IRR, pelectricity_mean, pheat_mean)
+    return (NPV_invest, Regret, NPV_wait, IRR, pelectricity, pheat, pNE, pETS, CFvec, Cost_specific, pNE_supported)
 
 
 def return_model() -> Model:
@@ -476,14 +398,15 @@ def return_model() -> Model:
     model = Model(BECCS_investment)
     model.parameters = [
         Parameter("investment_decision"),
-        Parameter("pNE_2024"),
+        Parameter("pNE_mean"),
         Parameter("pNE_dt"),
-        Parameter("pelectricity_2024"),
+        Parameter("pelectricity_mean"),
         Parameter("pelectricity_dt"),
-        Parameter("pheat_2024"),
+        Parameter("pheat_mean"),
         Parameter("pheat_dt"),
         Parameter("pbiomass"),
-        Parameter("pETS_2024"),
+
+        Parameter("pETS_2050"),
         Parameter("pETS_dt"),
         Parameter("Discount_rate"),
         Parameter("CAPEX"),
@@ -492,6 +415,7 @@ def return_model() -> Model:
         Parameter("Cost_transportation"),
         Parameter("Cost_storage"),
         Parameter("Learning_rate"),
+        
         Parameter("AUCTION"),
         Parameter("yQUOTA"),
         Parameter("yEUint"),
@@ -500,24 +424,33 @@ def return_model() -> Model:
     ]
 
     model.responses = [
-        Response("pNE_mean", Response.INFO),
         Response("NPV_invest", Response.MAXIMIZE),
         Response("Regret", Response.MINIMIZE),
         Response("NPV_wait", Response.MAXIMIZE),
         Response("IRR", Response.MAXIMIZE),
-        Response("pelectricity_mean", Response.INFO),
-        Response("pheat_mean", Response.INFO),
+        Response("pelectricity", Response.INFO),
+        Response("pheat", Response.INFO),
+        Response("pNE", Response.INFO),
+        Response("pETS", Response.INFO),
+        Response("CFvec", Response.INFO),
+        Response("Cost_specific", Response.INFO),
+        Response("pNE_supported", Response.INFO),
     ]
 
     model.levers = [RealLever("investment_decision", 0, 1, length=2)]
 
     # For uncertainties, some are expanded ranges around values found in the literature, and some are assumed. Refer to full article.
     model.uncertainties = [
-        UniformUncertainty("pNE_2024", 20, 140),
-        UniformUncertainty("pNE_dt", -1, 1),
+        UniformUncertainty("pNE_mean", 20, 400),
+        UniformUncertainty("pNE_dt", 5, 40),
         UniformUncertainty("pbiomass", 15, 35),
-        UniformUncertainty("pETS_2024", 60, 100),
-        UniformUncertainty("pETS_dt", -1, 1),
+        UniformUncertainty("pelectricity_mean",5,160),
+        UniformUncertainty("pelectricity_dt",5,40),
+        UniformUncertainty("pheat_mean",50, 150),
+        UniformUncertainty("pheat_dt",1,20),
+
+        UniformUncertainty("pETS_2050", 100, 900),
+        UniformUncertainty("pETS_dt", 5, 90),
         UniformUncertainty("Discount_rate", 0.04, 0.10),
         UniformUncertainty("CAPEX", 100 * 10**6, 300 * 10**6),
         UniformUncertainty("OPEX_fixed", 18 * 10**6, 22 * 10**6),
@@ -525,6 +458,7 @@ def return_model() -> Model:
         UniformUncertainty("Cost_transportation", 17, 27),
         UniformUncertainty("Cost_storage", 6, 23),
         UniformUncertainty("Learning_rate", 0.0075, 0.0125),
+
         UniformUncertainty("AUCTION", 0, 1),
         UniformUncertainty("yQUOTA", 2030, 2050),
         UniformUncertainty("yEUint", 2035, 2050),
