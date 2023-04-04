@@ -1,7 +1,7 @@
-# New prices branch
+# New uncertainties branch
 In this branch, we develop a version of the model were:
-1. Energy prices are not divided into 4 trends, and are instead collected into 1 analysis.
-2. Random price trajectories (for heat, electricity, NEs and ETS) are reworked to be more interpretable.
+1. The Operating_hours of the BECCS plant is treated as an uncertainty, and not as a constant (8760h * 70% of the year).
+2. We try implementing an energy shock uncertainty, to see if temporarily heightened electricity prices affect robustness.
 
 # Questions from Will
 
