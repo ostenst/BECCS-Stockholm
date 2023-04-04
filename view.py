@@ -25,16 +25,27 @@ def plot_results(model: Model, model_results: DataSet):
     print("-------------BEGIN RESPONSE PLOTTING NOW-------------")
     fig = scatter2d(model, model_results, x="NPV_wait", y="NPV_invest", c="Regret")
     fig.savefig("2_NPV_Regret.png")
-    fig = scatter2d(model, model_results, x="pNE_supported", y="NPV_invest", c="Regret")
+    fig = scatter2d(model, model_results, x="pETS_2050", y="NPV_invest", c="Regret")
     fig.savefig("2_NPV_pNE.png")
     fig = scatter2d(
-        model, model_results.find("yCLAIM>2032"), x="pETS_mean", y="pNE_supported", c="Regret"
+        model, model_results.find("yCLAIM>2032"), x="pETS_2050", y="pNE_supported", c="Regret"
     )
     # ity: 76.90%
     # Coverage: 39.98%
     # Rule: pETS_mean <= 246.226875 and
     #       yCLAIM > 2032.839844
     fig.savefig("2_NPV_penergy.png")
+
+    fig = scatter2d(
+        model, model_results, x="yCLAIM", y="pNE_supported", c="NPV_invest"
+    )
+    fig.savefig("2_test4.png")
+    fig = scatter2d(
+        model, model_results, x="yCLAIM", y="pNE_supported", c="Regret"
+    )
+    fig.savefig("2_test5.png")
+
+
     fig = scatter2d(
         model, model_results.find("IRR != 0"), x="pNE_mean", y="IRR", c="Regret"
     )
@@ -48,7 +59,11 @@ def plot_results(model: Model, model_results: DataSet):
         model, model_results, x="pNE_supported", y="Cost_specific", c="Regret"
     )
     fig.savefig("2_test.png")
-
+    plt.clf()
+    fig = scatter2d(
+        model, model_results, x="pNE_supported", y="Cost_specific", c="NPV_invest"
+    )
+    fig.savefig("2_test2.png")
     
 
 def robustness_analysis(model_results: DataSet):
@@ -189,7 +204,7 @@ def plot_sensitivity_analysis_results(sobol_result):
                 "pNE_mean",
                 "pNE_dt",
                 "pbiomass",
-                "pETS_mean",
+                "pETS_2050",
                 "pETS_dt",
             ],
             "BECCS valuations": [
