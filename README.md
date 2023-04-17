@@ -1,4 +1,5 @@
 # New uncertainties branch
+//I will abandon this branch because it is causing too many errors. Will redo the desired changes in another branch//
 In this branch, we develop a version of the model were:
 1. The Operating_hours of the BECCS plant is treated as an uncertainty, and not as a constant (8760h * 70% of the year).
 2. We try implementing an energy shock uncertainty, to see if temporarily heightened electricity prices affect robustness.
