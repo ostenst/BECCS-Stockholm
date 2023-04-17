@@ -134,12 +134,12 @@ def find_sell_prices(pmean, pvolatility, pfloor):
         pvec.append(pnew)
     return pvec
 
-@dataclass(slots=True)
+# @dataclass(slots=True)
 class BeccsPlant:
     """Represents a biomass CCS plant
 
     POWER PLANT OPERATING CONDITIONS: Operating conditions are not modelled as uncertainties,
-    as they are routinely managed by the power plant operators.
+    as they are routinely managed by the power plant operators. NOTE: AVAILABILITY FACTOR IS.
     Refer to full article for data sources.
 
     Arguments
@@ -158,25 +158,20 @@ class BeccsPlant:
     OPEX_power_plant: float
     """
 
-    Qbiomass_input: float = 362  # [MW]
-    Wpower_output_wait: float = 110  # [MW]
-    Qheat_output_wait: float = 287  # [MW]
-    Wpower_output_invest: float = 53  # [MW]
-    Qheat_output_invest: float = 337  # [MW]
-
-    Operating_hours: float = (
-        8760 * 0.7
-    )  # [h] rule of thumb of ~70 % operating hours/year.
-    CO2capture_rate: float = 0.3  # [tCO2/MWh_biomass]
-
-    CO2captured: float = field(init=False)  # [tCO2/year]
-    OPEX_power_plant: float = field(init=False)  # [EUR/year]
-
+    def __init__(self, Availability_factor):
+        self.Availability_factor = Availability_factor  
+        self.Qbiomass_input = 362  # [MW]
+        self.Wpower_output_wait = 110  # [MW]
+        self.Qheat_output_wait = 287  # [MW]
+        self.Wpower_output_invest = 53  # [MW]
+        self.Qheat_output_invest = 337  # [MW]
+        self.CO2capture_rate = 0.3      # [tCO2/MWh_biomass]
+  
+        self.Operating_hours = 8760 * self.Availability_factor
     # [tCO2/year], about 5 % of CO2 is leaked across the value chain.
-    CO2captured = CO2capture_rate * Qbiomass_input * Operating_hours * (1 - 0.05)
+        self.CO2captured = self.CO2capture_rate * self.Qbiomass_input * self.Operating_hours * (1 - 0.05)
     # [EUR/year], see full article for these operational costs.
-    OPEX_power_plant = 29000 * Qbiomass_input + 0.5 * Operating_hours * Qbiomass_input
-
+        self.OPEX_power_plant = 29000 * self.Qbiomass_input + 0.5 * self.Operating_hours * self.Qbiomass_input
 
 def calculate_cash_flow(
     year_index: int,
@@ -235,6 +230,7 @@ def BECCS_investment(
     pETS_dt=0,  # -1 to +1,    sets exponential increase in ETS prices
     Discount_rate=0.06,  # [-]
     Learning_rate=0.01,  # [-]
+    Availability_factor=0.70, 
     CAPEX=200 * 10**6,  # [EUR]
     OPEX_fixed=20 * 10**6,  # [EUR/year]
     OPEX_variable=44,  # [EUR/tCO2]
@@ -255,7 +251,7 @@ def BECCS_investment(
     Finally, computes metrics
     """
 
-    plant = BeccsPlant()
+    plant = BeccsPlant(Availability_factor)
 
     # CALCULATE ENERGY/CO2 PRICES FOR THIS SOW:
     # Helping functions are used to construct pseudo-random energy and CO2 price projections. The
@@ -415,6 +411,7 @@ def return_model() -> Model:
         Parameter("Cost_transportation"),
         Parameter("Cost_storage"),
         Parameter("Learning_rate"),
+        Parameter("Availability_factor"),
         
         Parameter("AUCTION"),
         Parameter("yQUOTA"),
@@ -458,6 +455,7 @@ def return_model() -> Model:
         UniformUncertainty("Cost_transportation", 17, 27),
         UniformUncertainty("Cost_storage", 6, 23),
         UniformUncertainty("Learning_rate", 0.0075, 0.0125),
+        UniformUncertainty("Availability_factor", 0.65, 0.75),
 
         UniformUncertainty("AUCTION", 0, 1),
         UniformUncertainty("yQUOTA", 2030, 2050),
