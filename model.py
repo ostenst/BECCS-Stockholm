@@ -106,7 +106,7 @@ def find_pETS(pETS_2050, pETS_dt):
         pETS_vec.append(pETS_new)
     return pETS_vec
 
-def find_sell_prices(pmean, pvolatility, pfloor):
+def find_sell_prices(pmean, pvolatility, pfloor, ySHOCK):
     """Determines selling prices of electricity, heat and NEs
 
     Arguments
@@ -130,6 +130,11 @@ def find_sell_prices(pmean, pvolatility, pfloor):
             pnew = pfloor
         else:
             pnew = pmean + pchange
+        # A price shock is assumed to cause a temporary price increase by 80 %, based on the electricity price increase in zone SE3 in 2022:
+        # https://www.vattenfall.se/elavtal/elpriser/rorligt-elpris/prishistorik/
+        if 2024 + t == round(ySHOCK):
+            pnew = pnew * 1.80
+
         pvec.append(pnew)
     return pvec
 
@@ -240,6 +245,7 @@ def BECCS_investment(
     yEUint=2040,
     yBIOban=2051,
     yCLAIM=2026,
+    ySHOCK=2051,
     IRR=0, # TODO: IRR is not used for anything. Yet the model won't run when I try to remove it?!
 ):
     """Calculate regret and other metrics for two strategies "wait" or "invest" for a SOW
@@ -261,16 +267,19 @@ def BECCS_investment(
         pelectricity_mean,
         pelectricity_dt,
         pfloor=5,
+        ySHOCK=ySHOCK,
     )
     pheat = find_sell_prices(
         pheat_mean,
         pheat_dt,
         pfloor=48,
+        ySHOCK=2051,
     )
     pNE = find_sell_prices(
         pNE_mean,
         pNE_dt,
         pfloor=3,
+        ySHOCK=2051,
     )
     pETS = find_pETS(
         pETS_2050, 
@@ -393,6 +402,7 @@ def return_model() -> Model:
         Parameter("yEUint"),
         Parameter("yBIOban"),
         Parameter("yCLAIM"),
+        Parameter("ySHOCK"),
     ]
 
     model.responses = [
@@ -437,5 +447,6 @@ def return_model() -> Model:
         UniformUncertainty("yEUint", 2035, 2050),
         UniformUncertainty("yBIOban", 2030, 2050),
         UniformUncertainty("yCLAIM", 2024, 2050),
+        UniformUncertainty("ySHOCK", 2030, 2050),
     ]
     return model
