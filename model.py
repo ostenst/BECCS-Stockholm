@@ -289,7 +289,6 @@ def BECCS_investment(
     # CALCULATE CASH FLOWS BASED ON BOTH INVESTMENT DECISIONS:
     # (1) calculate NPV for not investing, i.e. Waiting:
     CFvec_wait = []
-
     NPV_wait = 0
     for t in range(0, 27):
         CF = calculate_cash_flow(t, plant, pelectricity, pheat, pbiomass, wait=True)
@@ -300,7 +299,7 @@ def BECCS_investment(
         NPV_wait += CF / ((1 + Discount_rate) ** t)
         CFvec_wait.append(CF)
     # Now NPV is known for the Wait strategy!
-
+ 
     # (2) calculate NPV (and IRR) for the Invest strategy:
     NPV_invest = 0
     CFvec = []
@@ -365,6 +364,7 @@ def BECCS_investment(
     ## CALCULATE OTHER INTERESTING PARAMETERS:
     # pelectricity_mean = np.mean(pelectricity)
     # pheat_mean = np.mean(pheat)
+    pNE_supported = np.mean(pNE_supported)
     Cost_specific = (
             (OPEX_variable + Cost_transportation + Cost_storage)
             + OPEX_fixed / plant.CO2captured
