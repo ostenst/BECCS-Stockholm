@@ -72,7 +72,7 @@ def main():
     robustness_analysis(model_results)
     node_list = scenario_discovery(model, model_results) #TODO: MAKE SURE SCENARIOS ARE DISCOVERED AND SAVED
     #save_scenario_discovery(node_list, workbook)
-    #plot_scenario_of_interest(model, model_results)
+    plot_scenario_of_interest(model, model_results)
     sa_result = conduct_sensitivity_analysis(model, POLICY)
     # You can comment out the CART node prints and the Sobol sensitivity analysis prints,
     # as these anyway are saved to the RDM_processed_results file.
