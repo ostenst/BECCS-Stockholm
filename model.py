@@ -449,7 +449,7 @@ def return_model() -> Model:
         UniformUncertainty("pheat_mean",50, 150),
         UniformUncertainty("pheat_dt",1,20),
 
-        UniformUncertainty("pETS_2050", 100, 900),
+        UniformUncertainty("pETS_2050", 110, 330), #100-900, but Implement Consulting suggest others... IEA suggest 113? https://iea.blob.core.windows.net/assets/2db1f4ab-85c0-4dd0-9a57-32e542556a49/GlobalEnergyandClimateModelDocumentation2022.pdf 
         UniformUncertainty("pETS_dt", 5, 90),
         UniformUncertainty("Discount_rate", 0.04, 0.10), 
         UniformUncertainty("CAPEX", 100 * 10**6, 300 * 10**6),
