@@ -46,10 +46,10 @@ def plot_results(model: Model, model_results: DataSet):
     fig.savefig("2_test5.png")
 
 
-    fig = scatter2d(
-        model, model_results.find("IRR != 0"), x="pNE_mean", y="IRR", c="Regret"
-    )
-    fig.savefig("2_IRR_pNE.png")
+    # fig = scatter2d(
+    #     model, model_results.find("IRR != 0"), x="pNE_mean", y="IRR", c="Regret"
+    # )
+    # fig.savefig("2_IRR_pNE.png")
     plt.clf()
     pairs(model, model_results, brush=["Regret > 0", "Regret == 0"])
     plt.savefig("2_Responses_pair.png")
