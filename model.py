@@ -441,9 +441,9 @@ def return_model() -> Model:
 
     # For uncertainties, some are expanded ranges around values found in the literature, and some are assumed. Refer to full article.
     model.uncertainties = [
-        UniformUncertainty("pNE_mean", 20, 400),
+        UniformUncertainty("pNE_mean", 5, 400), #20-400
         UniformUncertainty("pNE_dt", 5, 40),
-        UniformUncertainty("pbiomass", 15, 35),
+        UniformUncertainty("pbiomass", 15, 35), #15-35
         UniformUncertainty("pelectricity_mean",5,160),
         UniformUncertainty("pelectricity_dt",5,40),
         UniformUncertainty("pheat_mean",50, 150),
@@ -451,10 +451,10 @@ def return_model() -> Model:
 
         UniformUncertainty("pETS_2050", 100, 900),
         UniformUncertainty("pETS_dt", 5, 90),
-        UniformUncertainty("Discount_rate", 0.04, 0.10),
+        UniformUncertainty("Discount_rate", 0.04, 0.10), 
         UniformUncertainty("CAPEX", 100 * 10**6, 300 * 10**6),
-        UniformUncertainty("OPEX_fixed", 18 * 10**6, 22 * 10**6),
-        UniformUncertainty("OPEX_variable", 33, 55),
+        UniformUncertainty("OPEX_fixed", 10 * 10**6, 30 * 10**6), #18-22 or 10-30 (mean 20)
+        UniformUncertainty("OPEX_variable", 22, 66),    #33-55 or 22-66 (mean 44)... but this contains elec penalty?
         UniformUncertainty("Cost_transportation", 17, 27),
         UniformUncertainty("Cost_storage", 6, 23),
         UniformUncertainty("Learning_rate", 0.0075, 0.0125),
