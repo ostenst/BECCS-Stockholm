@@ -106,7 +106,7 @@ def find_pETS(pETS_2050, pETS_dt):
         pETS_vec.append(pETS_new)
     return pETS_vec
 
-def find_sell_prices(pmean, pvolatility, pfloor):
+def find_sell_prices(pmean, pvolatility, pfloor, ySHOCK):
     """Determines selling prices of electricity, heat and NEs
 
     Arguments
@@ -130,6 +130,12 @@ def find_sell_prices(pmean, pvolatility, pfloor):
             pnew = pfloor
         else:
             pnew = pmean + pchange
+
+        # If a year of a price shock is reached, new prices are temporarily heightened by ~80 %. This assumption is in-line with the historic electricity prices of the Stockholm area in 2022:
+        # https://www.vattenfall.se/elavtal/elpriser/rorligt-elpris/prishistorik/
+        if 2023+t == round(ySHOCK):
+            pnew = pnew*1.8
+
         pvec.append(pnew)
     return pvec
 
@@ -245,6 +251,7 @@ def BECCS_investment(
     yEUint=2040,
     yBIOban=2051,
     yCLAIM=2026,
+    ySHOCK=2051,
 ):
     """Calculate regret and other metrics for two strategies "wait" or "invest" for a SOW
 
@@ -265,16 +272,19 @@ def BECCS_investment(
         pelectricity_mean,
         pelectricity_dt,
         pfloor=5,
+        ySHOCK=ySHOCK,
     )
     pheat = find_sell_prices(
         pheat_mean,
         pheat_dt,
         pfloor=48,
+        ySHOCK=2051,
     )
     pNE = find_sell_prices(
         pNE_mean,
         pNE_dt,
         pfloor=3,
+        ySHOCK=2051,
     )
     pETS = find_pETS(
         pETS_2050, 
@@ -361,7 +371,7 @@ def BECCS_investment(
             (OPEX_variable + Cost_transportation + Cost_storage)
             + OPEX_fixed / plant.CO2captured
         ) 
-    
+
     # Now the calculation model is done!
     return (NPV_invest, NPV_wait, Regret, pbiomass, pelectricity, pheat, pNE, pETS, CFvec, Cost_specific, pNE_supported)
 
@@ -395,6 +405,7 @@ def return_model() -> Model:
         Parameter("yEUint"),
         Parameter("yBIOban"),
         Parameter("yCLAIM"),
+        Parameter("ySHOCK"),
     ]
 
     model.responses = [
@@ -439,5 +450,6 @@ def return_model() -> Model:
         UniformUncertainty("yEUint", 2035, 2050),
         UniformUncertainty("yBIOban", 2030, 2050),
         UniformUncertainty("yCLAIM", 2023, 2050),
+        UniformUncertainty("ySHOCK", 2030, 2050),
     ]
     return model
