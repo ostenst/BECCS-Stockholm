@@ -234,6 +234,7 @@ def BECCS_investment(
     pETS_dt=0,  # -1 to +1,    sets exponential increase in ETS prices
     Discount_rate=0.06,  # [-]
     Learning_rate=0.01,  # [-]
+    Availability_factor=0.7, # [-]
     CAPEX=200 * 10**6,  # [EUR]
     OPEX_fixed=20 * 10**6,  # [EUR/year]
     OPEX_variable=44,  # [EUR/tCO2]
@@ -254,7 +255,7 @@ def BECCS_investment(
     Finally, computes metrics
     """
 
-    plant = BeccsPlant()
+    plant = BeccsPlant(Operating_hours=Availability_factor*8760)
 
     # CALCULATE ENERGY/CO2 PRICES FOR THIS SOW:
     # Helping functions are used to construct pseudo-random energy and CO2 price projections. The
@@ -387,6 +388,7 @@ def return_model() -> Model:
         Parameter("Cost_transportation"),
         Parameter("Cost_storage"),
         Parameter("Learning_rate"),
+        Parameter("Availability_factor"),
         
         Parameter("AUCTION"),
         Parameter("yQUOTA"),
@@ -430,6 +432,7 @@ def return_model() -> Model:
         UniformUncertainty("Cost_transportation", 17, 27),
         UniformUncertainty("Cost_storage", 6, 23),
         UniformUncertainty("Learning_rate", 0.0075, 0.0125),
+        UniformUncertainty("Availability_factor", 0.65, 0.75),
 
         UniformUncertainty("AUCTION", 0, 1),
         UniformUncertainty("yQUOTA", 2030, 2050),
