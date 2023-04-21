@@ -177,8 +177,8 @@ class BeccsPlant:
     CO2captured: float = field(init=False)  # [tCO2/year]
     OPEX_power_plant: float = field(init=False)  # [EUR/year]
 
-    # [tCO2/year], about 5 % of CO2 is leaked across the value chain.
-    CO2captured = CO2capture_rate * Qbiomass_input * Operating_hours * (1 - 0.05)
+    # [tCO2/year] NOTE: SHOULD BE ABOUT 33% HIGHER
+    CO2captured = CO2capture_rate * Qbiomass_input * Operating_hours 
     # [EUR/year], see full article for these operational costs.
     OPEX_power_plant = 29000 * Qbiomass_input + 0.5 * Operating_hours * Qbiomass_input
 
@@ -429,12 +429,12 @@ def return_model() -> Model:
         UniformUncertainty("pNE_mean", 50, 400), #20-400
         UniformUncertainty("pNE_dt", 5, 40),
         UniformUncertainty("pbiomass", 15, 35), #15-35
-        UniformUncertainty("pelectricity_mean",5,160),
+        UniformUncertainty("pelectricity_mean",5,160), #KÅRE USED THIS
         UniformUncertainty("pelectricity_dt",5,40),
         UniformUncertainty("pheat_mean",50, 150),
         UniformUncertainty("pheat_dt",1,20),
 
-        UniformUncertainty("pETS_2050", 110, 330), #100-900, but Implement Consulting suggest others... IEA suggest 113? https://iea.blob.core.windows.net/assets/2db1f4ab-85c0-4dd0-9a57-32e542556a49/GlobalEnergyandClimateModelDocumentation2022.pdf 
+        UniformUncertainty("pETS_2050", 125, 375), #100-900, but Implement Consulting suggest others... IEA suggest 250? https://iea.blob.core.windows.net/assets/2db1f4ab-85c0-4dd0-9a57-32e542556a49/GlobalEnergyandClimateModelDocumentation2022.pdf 
         UniformUncertainty("pETS_dt", 5, 90),
         UniformUncertainty("Discount_rate", 0.04, 0.10), 
         UniformUncertainty("CAPEX", 100 * 10**6, 300 * 10**6),

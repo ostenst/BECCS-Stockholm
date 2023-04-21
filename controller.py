@@ -54,7 +54,7 @@ def evaluate_model(model: Model) -> DataSet:
 def conduct_sensitivity_analysis(model: Model, policy):
     print("-------------BEGIN SENSITIVITY ANALYSIS NOW-------------")
     # The sensitivity analysis indicates what uncertainties drive Regret. Using Sobols method, this is measured in 1st, 2nd and total order sensitivity indices.
-    # The article uses nsamples = 500 000, but for fast model evaluations nsamples = 10 000 can be used.
+    # The article uses nsamples = 800 000, but for fast model evaluations nsamples = 10 000 can be used.
     sobol_result = sa(model, "Regret", policy=policy, method="sobol", nsamples=10000)
     return sobol_result
 
