@@ -100,7 +100,7 @@ def robustness_analysis(model_results: DataSet):
 def scenario_discovery(model: Model, model_results: DataSet) -> list:
     # The scenario discovery produces ranges of uncertainties (i.e. scenarios) where Invest performs well (i.e. have Regret = 0).
     print("-------------BEGIN SCENARIO DISCOVERY NOW-------------")
-    classification = model_results.apply("'Reliable' if Regret == 0 else 'Unreliable'")
+    classification = model_results.apply("'Reliable' if (Regret == 0 and NPV_invest >= 0) else 'Unreliable'")
     cart_results = Cart(
         model_results,
         classification,
@@ -198,25 +198,34 @@ def plot_sensitivity_analysis_results(sobol_result):
     fig = sobol_result.plot_sobol(
         radSc=1.9,
         widthSc=0.7,
-        threshold=0.015,
+        threshold=0.004, #0.015
         groups={
             "Commodity prices": [
                 "pNE_mean",
-                "pNE_dt",
-                "pbiomass",
+                # "pNE_dt",
+                # "pbiomass",
                 "pETS_2050",
-                "pETS_dt",
+                # "pETS_dt",
+                "pelectricity_mean",
             ],
-            "BECCS valuations": [
+            "BECCS financials": [
                 "Discount_rate",
-                "CAPEX",
+                # "CAPEX",
                 "OPEX_fixed",
                 "OPEX_variable",
-                "Cost_transportation",
-                "Cost_storage",
-                "Learning_rate",
+                # "Cost_transportation",
+                # "Cost_storage",
+                # "Learning_rate",
+                # "Availability_factor,"
             ],
-            "POLICY states": ["AUCTION", "yEUint", "yQUOTA", "yBIOban", "yCLAIM"],
+            "POLICY states": [
+                "AUCTION", 
+                # "yEUint", 
+                # "yQUOTA", 
+                "yBIOban", 
+                "yCLAIM", 
+                # "ySHOCK",
+            ],
         },
     )
     fig.savefig("3_Sobol_spider.png")
