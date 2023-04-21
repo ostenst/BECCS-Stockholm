@@ -25,39 +25,17 @@ def plot_results(model: Model, model_results: DataSet):
     print("-------------BEGIN RESPONSE PLOTTING NOW-------------")
     fig = scatter2d(model, model_results, x="NPV_wait", y="NPV_invest", c="Regret")
     fig.savefig("2_NPV_Regret.png")
-    fig = scatter2d(model, model_results, x="pETS_2050", y="NPV_invest", c="Regret")
+    fig = scatter2d(model, model_results, x="pNE_supported", y="NPV_invest", c="Regret")
     fig.savefig("2_NPV_pNE.png")
-    fig = scatter2d(
-        model, model_results.find("yCLAIM>2032"), x="pETS_2050", y="pNE_supported", c="Regret"
-    )
-    # ity: 76.90%
-    # Coverage: 39.98%
-    # Rule: pETS_mean <= 246.226875 and
-    #       yCLAIM > 2032.839844
-    fig.savefig("2_NPV_penergy.png")
-
-    fig = scatter2d(
-        model, model_results, x="yCLAIM", y="pNE_supported", c="NPV_invest"
-    )
-    fig.savefig("2_test4.png")
-    fig = scatter2d(
-        model, model_results, x="yCLAIM", y="pNE_supported", c="Regret"
-    )
-    fig.savefig("2_test5.png")
-
-
-    # fig = scatter2d(
-    #     model, model_results.find("IRR != 0"), x="pNE_mean", y="IRR", c="Regret"
-    # )
-    # fig.savefig("2_IRR_pNE.png")
-    pairs(model, model_results, brush=["Regret > 0", "Regret == 0"])
-    plt.savefig("2_Responses_pair.png")
-    plt.clf()
     
     fig = scatter2d(
-        model, model_results, x="pNE_supported", y="Cost_specific", c="Regret"
+        model, model_results, x="Cost_specific", y="pNE_supported", c="Regret"
     )
-    fig.savefig("2_test.png")
+    fig.savefig("2_pNE_Costs.png")
+    
+    pairs(model, model_results, brush=["Regret > 0", "Regret == 0"])
+    plt.savefig("2_Responses_Pair.png")
+    plt.clf()
     
 
 def robustness_analysis(model_results: DataSet):
@@ -168,18 +146,31 @@ def plot_scenario_of_interest(model: Model, model_results: DataSet):
     # The Rules (uncertainty ranges) of a scenario node of interest (as found in the CART_results sheet) can be illustrated.
     # This is done by drawing a scenario rectangle representing these uncertainty ranges. The resulting "box" then graphically
     # represents a discovered scenario. The drawing is hard coded and can be changed as desired, depending on the scenario of interest.
-    fig = scatter2d(model, model_results, x="yCLAIM", y="pNE_dt", c="Regret")
+    fig = scatter2d(model, model_results, x="yCLAIM", y="pNE_mean", c="Regret")
     scenario_area = mpatches.Rectangle(
-        (2023, 0.047607),
-        (2032.198914 - 2023),
-        1 - (0.047607),
+        (2023, 161.8),
+        (2033 - 2023),
+        400 - (161.8),
         fill=False,
         color="crimson",
         linewidth=3,
     )
     # facecolor="red")
     plt.gca().add_patch(scenario_area)
-    fig.savefig("4_CART_area.png")
+    fig.savefig("4_Scenario_1.png")
+
+    # fig = scatter2d(model, model_results, x="yCLAIM", y="pNE_mean", c="Regret")
+    # scenario_area = mpatches.Rectangle(
+    #     (2023, 161.8),
+    #     (2033 - 2023),
+    #     400 - (161.8),
+    #     fill=False,
+    #     color="crimson",
+    #     linewidth=3,
+    # )
+    # # facecolor="red")
+    # plt.gca().add_patch(scenario_area)
+    # fig.savefig("4_Scenario_1.png")
 
 
 def save_sensitivity_analysis(
@@ -248,14 +239,11 @@ def plot_sensitivity_analysis_results(sobol_result):
 
 def plot_critical_uncertainties(model: Model, model_results: DataSet):
     # Below one can plot the critical uncertainties (i.e. with high total sensitivity indices), to see how these affect Regret.
-    fig = scatter2d(model, model_results, x="yCLAIM", y="yBIOban", c="Regret")
+    fig = scatter2d(model, model_results, x="yCLAIM", y="AUCTION", c="Regret")
     fig.savefig("3_Sobol_Us1.png")
-    plt.clf()
-    fig = scatter2d(model, model_results, x="yCLAIM", y="pelectricity_mean", c="Regret")
+
+    fig = scatter2d(model, model_results, x="yBIOban", y="pelectricity_mean", c="Regret")
     fig.savefig("3_Sobol_Us2.png")
-    plt.clf()
+
     fig = scatter2d(model, model_results, x="yCLAIM", y="AUCTION", c="Regret")
     fig.savefig("3_Sobol_Us3.png")
-    plt.clf()
-    fig = scatter2d(model, model_results, x="yCLAIM", y="pNE_mean", c="Regret") #pNE > 130.355301 and yCLAIM <= 2030.623657 has 98%density, 30%coverage
-    fig.savefig("4_CART_test.png")
