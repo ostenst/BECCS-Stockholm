@@ -27,6 +27,7 @@ from view import (
     plot_sensitivity_analysis_results,
     plot_critical_uncertainties,
     robustness_analysis,
+    save_robustness_analysis,
 )
 
 # investment_decision = 1 means Invest and investment_decision = 0 means Wait.
@@ -69,7 +70,8 @@ def main():
     model_results = evaluate_model(model)
     save_model_results(workbook, model_results)
     plot_results(model, model_results)
-    robustness_analysis(model_results)
+    robustness_results = robustness_analysis(model_results)
+    save_robustness_analysis(robustness_results, workbook)
     node_list = scenario_discovery(model, model_results)
     save_scenario_discovery(node_list, workbook)
     plot_scenario_of_interest(model, model_results)

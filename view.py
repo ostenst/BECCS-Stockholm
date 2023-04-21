@@ -70,10 +70,10 @@ def robustness_analysis(model_results: DataSet):
     print("Waiting is satisficing in ", len(wait_satisficing), " SOWs")
 
     # How robust is Invest and Wait, using the satisficing (relative and absolute) domain criteria?
-    invest_satisficing = invest_satisficing.find("NPV_invest>NPV_wait")
-    print("Investing is _relative_ satisficing in ", len(invest_satisficing), " SOWs")
-    wait_satisficing = wait_satisficing.find("NPV_invest<NPV_wait")
-    print("Waiting is _relative_ satisficing in ", len(wait_satisficing), " SOWs")
+    invest_satisficing_relative = invest_satisficing.find("NPV_invest>NPV_wait")
+    print("Investing is _relative_ satisficing in ", len(invest_satisficing_relative), " SOWs")
+    wait_satisficing_relative = wait_satisficing.find("NPV_invest<NPV_wait")
+    print("Waiting is _relative_ satisficing in ", len(wait_satisficing_relative), " SOWs")
 
     # How robust is Invest and Wait, using the Savage criteria, i.e. to Min(Max(Regret))?
     invest_regret_vec = []
@@ -89,6 +89,9 @@ def robustness_analysis(model_results: DataSet):
         wait_regret_vec.append(wait_regret)
     print("Investing has maximum regret ", max(invest_regret_vec), " EUR")
     print("Waiting has maximum regret ", max(wait_regret_vec), " EUR")
+
+    robustness_results = [len(invest_satisficing), len(wait_satisficing), len(invest_satisficing_relative), len(wait_satisficing_relative), max(invest_regret_vec), max(wait_regret_vec)]
+    return robustness_results
 
 
 def scenario_discovery(model: Model, model_results: DataSet) -> list:
@@ -122,6 +125,24 @@ def save_model_results(RDM_results_excel: openpyxl.Workbook, model_results: Data
         for row in reader:
             sheet.append(row)
 
+def save_robustness_analysis(robustness_results: list, RDM_results_excel: openpyxl.Workbook):
+    sheet = RDM_results_excel.create_sheet("Robustness_results")
+    RDM_results_excel.active = RDM_results_excel["Robustness_results"]
+    sheet["A1"] = "Strategy"
+    sheet["A2"] = "Invest"
+    sheet["A3"] = "Wait"
+    sheet["B1"] = "Satisficing [n SOWs]"
+    sheet["B2"] = robustness_results[0]
+    sheet["B3"] = robustness_results[1]
+    sheet["C1"] = "Relative satisficing [n SOWs]"
+    sheet["C2"] = robustness_results[2]
+    sheet["C3"] = robustness_results[3]
+    sheet["D1"] = "Maximum Regret [EUR]"
+    sheet["D2"] = robustness_results[4]
+    sheet["D3"] = robustness_results[5]
+    RDM_results_excel.save("RDM_processed_results.xlsx")
+   
+
 def save_scenario_discovery(node_list: list, RDM_results_excel: openpyxl.Workbook):
     # Save discovered scenarios (in the node_list) to a CART excel sheet:
     sheet = RDM_results_excel.create_sheet("CART_results")
@@ -141,7 +162,7 @@ def save_scenario_discovery(node_list: list, RDM_results_excel: openpyxl.Workboo
                 node["Rules"]
             ):  # "Rules" are ranges of uncertainties.
                 sheet.cell(row=i + 2, column=j + 5).value = rule
-
+    RDM_results_excel.save("RDM_processed_results.xlsx")
 
 def plot_scenario_of_interest(model: Model, model_results: DataSet):
     # The Rules (uncertainty ranges) of a scenario node of interest (as found in the CART_results sheet) can be illustrated.
