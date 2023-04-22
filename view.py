@@ -12,7 +12,7 @@ __author__ = "Oscar Stenström"
 __date__ = "2023-02-16"
 
 from scipy.optimize import brentq as root
-from rhodium import scatter2d, Cart, pairs, DataSet, Model
+from rhodium import scatter2d, Cart, pairs, DataSet, Model, joint, scatter3d
 import csv
 import openpyxl
 import matplotlib.pyplot as plt
@@ -25,6 +25,11 @@ def plot_results(model: Model, model_results: DataSet):
     print("-------------BEGIN RESPONSE PLOTTING NOW-------------")
     fig = scatter2d(model, model_results, x="NPV_wait", y="NPV_invest", c="Regret")
     fig.savefig("2_NPV_Regret.png")
+    
+    joint(model, model_results, x="NPV_wait", y="NPV_invest", color="turquoise")
+    plt.savefig("2_NPV_distr.png")
+    plt.clf()
+
     fig = scatter2d(model, model_results, x="pNE_supported", y="NPV_invest", c="Regret")
     fig.savefig("2_NPV_pNE.png")
     
@@ -32,6 +37,14 @@ def plot_results(model: Model, model_results: DataSet):
         model, model_results, x="Cost_specific", y="pNE_supported", c="Regret"
     )
     fig.savefig("2_pNE_Costs.png")
+
+    joint(model, model_results, x="Cost_specific", y="pNE_supported", color="turquoise")
+    plt.savefig("2_Costs_distr.png")
+    plt.clf()
+
+    joint(model, model_results, x="pNE_mean", y="pNE_supported", color="turquoise")
+    plt.savefig("2_pNE_distr.png")
+    plt.clf()
     
     pairs(model, model_results, brush=["Regret > 0", "Regret == 0"])
     plt.savefig("2_Responses_Pair.png")
@@ -75,7 +88,7 @@ def robustness_analysis(model_results: DataSet):
 def scenario_discovery(model: Model, model_results: DataSet) -> list:
     # The scenario discovery produces ranges of uncertainties (i.e. scenarios) where Invest performs well (i.e. have Regret = 0).
     print("-------------BEGIN SCENARIO DISCOVERY NOW-------------")
-    classification = model_results.apply("'Reliable' if (Regret == 0 and NPV_invest >= 0) else 'Unreliable'")
+    classification = model_results.apply("'Reliable' if (Regret == 0 and NPV_invest >= 0) else 'Unreliable'") 
     cart_results = Cart(
         model_results,
         classification,
@@ -88,7 +101,6 @@ def scenario_discovery(model: Model, model_results: DataSet) -> list:
         coi="Reliable"
     )  # NOTE: in the classification.py file of rhodium, the print_tree() function was edited.
     # These edits basically just save the scenario nodes of the CART tree into a list, and return this list.
-
     return node_list
 
 
@@ -146,10 +158,10 @@ def plot_scenario_of_interest(model: Model, model_results: DataSet):
     # The Rules (uncertainty ranges) of a scenario node of interest (as found in the CART_results sheet) can be illustrated.
     # This is done by drawing a scenario rectangle representing these uncertainty ranges. The resulting "box" then graphically
     # represents a discovered scenario. The drawing is hard coded and can be changed as desired, depending on the scenario of interest.
-    fig = scatter2d(model, model_results, x="yCLAIM", y="pNE_mean", c="Regret")
+    fig = scatter2d(model, model_results, x="yCLAIM", y="pNE_mean", c="Regret") ## TVÅÅÅ FRÅGOR: VAD DRIVER REGRET (ej kostnad, ej intressant mm.)?, vad driver pNE_achieved (policy)?
     scenario_area = mpatches.Rectangle(
         (2023, 161.8),
-        (2033 - 2023),
+        (2030 - 2023),
         400 - (161.8),
         fill=False,
         color="crimson",
@@ -158,20 +170,49 @@ def plot_scenario_of_interest(model: Model, model_results: DataSet):
     # facecolor="red")
     plt.gca().add_patch(scenario_area)
     fig.savefig("4_Scenario_1.png")
+    plt.clf()
 
-    # fig = scatter2d(model, model_results, x="yCLAIM", y="pNE_mean", c="Regret")
-    # scenario_area = mpatches.Rectangle(
-    #     (2023, 161.8),
-    #     (2033 - 2023),
-    #     400 - (161.8),
-    #     fill=False,
-    #     color="crimson",
-    #     linewidth=3,
-    # )
-    # # facecolor="red")
-    # plt.gca().add_patch(scenario_area)
-    # fig.savefig("4_Scenario_1.png")
+    fig = scatter2d(model, model_results.find("yCLAIM<2030 and pNE_mean>161.8"), x="Cost_specific", y="pNE_supported", c="Regret") #Has 96% density
+    scenario_area = mpatches.Rectangle(
+        (70, 5),
+        (150 - 70),
+        400 - (5),
+        fill=False,
+        color="crimson",
+        linewidth=3,
+    )
+    # facecolor="red")
+    plt.gca().add_patch(scenario_area)
+    fig.savefig("4_Scenario_2.png") #96%->98% density
 
+    #-----------------below is pNE_supp-costs
+
+    fig = scatter2d(model, model_results, x="yCLAIM", y="yBIOban", c="Regret")
+    scenario_area = mpatches.Rectangle(
+        (2023, 2038),
+        (2033 - 2023),
+        2050 - (2038),
+        fill=False,
+        color="crimson",
+        linewidth=3,
+    )
+    # facecolor="red")
+    plt.gca().add_patch(scenario_area)
+    fig.savefig("4_Scenario_3.png")
+    plt.clf()
+
+    fig = scatter2d(model, model_results.find("yCLAIM<=2033 and yBIOban>2038"), x="pNE_mean", y="pNE_supported", c="Regret") #Has 96% density
+    scenario_area = mpatches.Rectangle(
+        (173, 5),
+        (400 - 173),
+        400 - (5),
+        fill=False,
+        color="crimson",
+        linewidth=3,
+    )
+    # facecolor="red")
+    plt.gca().add_patch(scenario_area)
+    fig.savefig("4_Scenario_4.png") #67%->90% density
 
 def save_sensitivity_analysis(
     model: Model, sobol_result, RDM_results_excel: openpyxl.Workbook
@@ -239,11 +280,8 @@ def plot_sensitivity_analysis_results(sobol_result):
 
 def plot_critical_uncertainties(model: Model, model_results: DataSet):
     # Below one can plot the critical uncertainties (i.e. with high total sensitivity indices), to see how these affect Regret.
-    fig = scatter2d(model, model_results, x="yCLAIM", y="AUCTION", c="Regret")
+    fig = scatter2d(model, model_results, x="yCLAIM", y="pelectricity_mean", c="Regret")
     fig.savefig("3_Sobol_Us1.png")
 
-    fig = scatter2d(model, model_results, x="yBIOban", y="pelectricity_mean", c="Regret")
+    fig = scatter2d(model, model_results, x="AUCTION", y="yBIOban", c="Regret")
     fig.savefig("3_Sobol_Us2.png")
-
-    fig = scatter2d(model, model_results, x="yCLAIM", y="AUCTION", c="Regret")
-    fig.savefig("3_Sobol_Us3.png")
