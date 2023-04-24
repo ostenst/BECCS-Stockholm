@@ -426,8 +426,8 @@ def return_model() -> Model:
 
     # For uncertainties, some are expanded ranges around values found in the literature, and some are assumed. Refer to full article.
     model.uncertainties = [
-        UniformUncertainty("pNE_mean", 50, 400), #20-400
-        UniformUncertainty("pNE_dt", 5, 40),
+        UniformUncertainty("pNE_mean", 100, 500), #20-400
+        UniformUncertainty("pNE_dt", 5, 50),
         UniformUncertainty("pbiomass", 15, 35), #15-35
         UniformUncertainty("pelectricity_mean",5,160), #KÅRE USED THIS
         UniformUncertainty("pelectricity_dt",5,40),

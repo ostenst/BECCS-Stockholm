@@ -50,9 +50,9 @@ def plot_results(model: Model, model_results: DataSet):
     plt.savefig("2_Responses_Pair.png")
     plt.clf()
     
-    n_successful   = len(model_results.find("Regret==0 and pNE_supported>160"))
-    n_unsuccessful = len(model_results.find("Regret >0 and pNE_supported>160"))
-    print( n_successful/(n_successful+n_unsuccessful)*100 , " % of scenarios have Regret = 0 when the NE price is above 160 EUR/t")
+    n_successful   = len(model_results.find("Regret==0 and pNE_supported>150"))
+    n_unsuccessful = len(model_results.find("Regret >0 and pNE_supported>150"))
+    print( n_successful/(n_successful+n_unsuccessful)*100 , "% of scenarios have Regret = 0 when the NE price is above 150 EUR/t") #94%
 
 def robustness_analysis(model_results: DataSet):
     """Prints robustness analytics to the terminal"""
@@ -91,7 +91,7 @@ def robustness_analysis(model_results: DataSet):
 def scenario_discovery(model: Model, model_results: DataSet) -> list:
     # The scenario discovery produces ranges of uncertainties (i.e. scenarios) where Invest performs well (i.e. have Regret = 0).
     print("-------------BEGIN SCENARIO DISCOVERY NOW-------------")
-    classification = model_results.apply("'Reliable' if (pNE_supported-Cost_specific > 0) else 'Unreliable'") # Regret == 0 and NPV_invest >= 0 # pNE_supported-Cost_specific > 0
+    classification = model_results.apply("'Reliable' if (Regret == 0 and NPV_invest >= 0) else 'Unreliable'") # Regret == 0 and NPV_invest >= 0 # pNE_supported-Cost_specific > 0
     cart_results = Cart(
         model_results,
         classification,
@@ -163,9 +163,9 @@ def plot_scenario_of_interest(model: Model, model_results: DataSet):
     # represents a discovered scenario. The drawing is hard coded and can be changed as desired, depending on the scenario of interest.
     fig = scatter2d(model, model_results, x="yCLAIM", y="pNE_mean", c="Regret") 
     scenario_area = mpatches.Rectangle(
-        (2023, 141.8),
-        (2030 - 2023),
-        400 - (141.8),
+        (2023, 174.4),
+        (2031 - 2023),
+        500 - (174.4),
         fill=False,
         color="crimson",
         linewidth=3,
@@ -174,7 +174,7 @@ def plot_scenario_of_interest(model: Model, model_results: DataSet):
     plt.gca().add_patch(scenario_area)
     fig.savefig("4_Scenario_1.png") 
     plt.clf()
-    # 232	Reliable	94.87635279970722	40.223872326277295	pNE_mean > 141.835625	yCLAIM <= 2030.005554
+    # 120	Reliable	96.36846767050487	45.55478018143754	pNE_mean > 174.424568	yCLAIM <= 2030.878113
 
     #-----------------The second scenario is evaluated below----------
     fig = scatter2d(model, model_results, x="yCLAIM", y="yBIOban", c="Regret")
@@ -193,9 +193,9 @@ def plot_scenario_of_interest(model: Model, model_results: DataSet):
 
     fig = scatter2d(model, model_results, x="yCLAIM", y="yBIOban", c="pNE_supported")
     scenario_area = mpatches.Rectangle(
-        (2023, 2039),
-        (2033 - 2023),
-        2050 - (2039),
+        (2023, 2038),
+        (2034 - 2023),
+        2050 - (2038),
         fill=False,
         color="crimson",
         linewidth=3,
@@ -204,8 +204,8 @@ def plot_scenario_of_interest(model: Model, model_results: DataSet):
     plt.gca().add_patch(scenario_area)
     fig.savefig("4_Scenario_3.png")
     plt.clf()
-    # 171	Reliable	68.71361771161371	65.78803106441298	yBIOban > 2038.761475	yCLAIM <= 2033.059692					
-    # 313	Reliable	92.58204705529747	56.44586569209685	pNE_mean > 177.611916	yBIOban > 2038.761475	yCLAIM <= 2033.059692				
+    # 205	Reliable	80.28449502133712	65.30247933884297	yBIOban > 2037.990173	yCLAIM <= 2034.062439					
+    # 319	Reliable	92.49519255755938	58.833057851239666	pNE_mean > 187.008896	yBIOban > 2037.990173	yCLAIM <= 2034.062439				
 
 def save_sensitivity_analysis(
     model: Model, sobol_result, RDM_results_excel: openpyxl.Workbook
