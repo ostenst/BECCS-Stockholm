@@ -50,6 +50,9 @@ def plot_results(model: Model, model_results: DataSet):
     plt.savefig("2_Responses_Pair.png")
     plt.clf()
     
+    n_successful   = len(model_results.find("Regret==0 and pNE_supported>160"))
+    n_unsuccessful = len(model_results.find("Regret >0 and pNE_supported>160"))
+    print( n_successful/(n_successful+n_unsuccessful)*100 , " % of scenarios have Regret = 0 when the NE price is above 160 EUR/t")
 
 def robustness_analysis(model_results: DataSet):
     """Prints robustness analytics to the terminal"""
@@ -88,7 +91,7 @@ def robustness_analysis(model_results: DataSet):
 def scenario_discovery(model: Model, model_results: DataSet) -> list:
     # The scenario discovery produces ranges of uncertainties (i.e. scenarios) where Invest performs well (i.e. have Regret = 0).
     print("-------------BEGIN SCENARIO DISCOVERY NOW-------------")
-    classification = model_results.apply("'Reliable' if (Regret == 0 and NPV_invest >= 0) else 'Unreliable'") 
+    classification = model_results.apply("'Reliable' if (pNE_supported-Cost_specific > 0) else 'Unreliable'") # Regret == 0 and NPV_invest >= 0 # pNE_supported-Cost_specific > 0
     cart_results = Cart(
         model_results,
         classification,
@@ -158,40 +161,41 @@ def plot_scenario_of_interest(model: Model, model_results: DataSet):
     # The Rules (uncertainty ranges) of a scenario node of interest (as found in the CART_results sheet) can be illustrated.
     # This is done by drawing a scenario rectangle representing these uncertainty ranges. The resulting "box" then graphically
     # represents a discovered scenario. The drawing is hard coded and can be changed as desired, depending on the scenario of interest.
-    fig = scatter2d(model, model_results, x="yCLAIM", y="pNE_mean", c="Regret") ## TVÅÅÅ FRÅGOR: VAD DRIVER REGRET (ej kostnad, ej intressant mm.)?, vad driver pNE_achieved (policy)?
+    fig = scatter2d(model, model_results, x="yCLAIM", y="pNE_mean", c="Regret") 
     scenario_area = mpatches.Rectangle(
-        (2023, 161.8),
+        (2023, 141.8),
         (2030 - 2023),
-        400 - (161.8),
+        400 - (141.8),
         fill=False,
         color="crimson",
         linewidth=3,
     )
     # facecolor="red")
     plt.gca().add_patch(scenario_area)
-    fig.savefig("4_Scenario_1.png")
+    fig.savefig("4_Scenario_1.png") 
     plt.clf()
+    # 232	Reliable	94.87635279970722	40.223872326277295	pNE_mean > 141.835625	yCLAIM <= 2030.005554
 
-    fig = scatter2d(model, model_results.find("yCLAIM<2030 and pNE_mean>161.8"), x="Cost_specific", y="pNE_supported", c="Regret") #Has 96% density
-    scenario_area = mpatches.Rectangle(
-        (70, 5),
-        (150 - 70),
-        400 - (5),
-        fill=False,
-        color="crimson",
-        linewidth=3,
-    )
-    # facecolor="red")
-    plt.gca().add_patch(scenario_area)
-    fig.savefig("4_Scenario_2.png") #96%->98% density
-
-    #-----------------below is pNE_supp-costs
-
+    #-----------------The second scenario is evaluated below----------
     fig = scatter2d(model, model_results, x="yCLAIM", y="yBIOban", c="Regret")
     scenario_area = mpatches.Rectangle(
-        (2023, 2038),
+        (2023, 2039),
         (2033 - 2023),
-        2050 - (2038),
+        2050 - (2039),
+        fill=False,
+        color="crimson",
+        linewidth=3,
+    )
+    # facecolor="red")
+    plt.gca().add_patch(scenario_area)
+    fig.savefig("4_Scenario_2.png")
+    plt.clf()
+
+    fig = scatter2d(model, model_results, x="yCLAIM", y="yBIOban", c="pNE_supported")
+    scenario_area = mpatches.Rectangle(
+        (2023, 2039),
+        (2033 - 2023),
+        2050 - (2039),
         fill=False,
         color="crimson",
         linewidth=3,
@@ -200,19 +204,8 @@ def plot_scenario_of_interest(model: Model, model_results: DataSet):
     plt.gca().add_patch(scenario_area)
     fig.savefig("4_Scenario_3.png")
     plt.clf()
-
-    fig = scatter2d(model, model_results.find("yCLAIM<=2033 and yBIOban>2038"), x="pNE_mean", y="pNE_supported", c="Regret") #Has 96% density
-    scenario_area = mpatches.Rectangle(
-        (173, 5),
-        (400 - 173),
-        400 - (5),
-        fill=False,
-        color="crimson",
-        linewidth=3,
-    )
-    # facecolor="red")
-    plt.gca().add_patch(scenario_area)
-    fig.savefig("4_Scenario_4.png") #67%->90% density
+    # 171	Reliable	68.71361771161371	65.78803106441298	yBIOban > 2038.761475	yCLAIM <= 2033.059692					
+    # 313	Reliable	92.58204705529747	56.44586569209685	pNE_mean > 177.611916	yBIOban > 2038.761475	yCLAIM <= 2033.059692				
 
 def save_sensitivity_analysis(
     model: Model, sobol_result, RDM_results_excel: openpyxl.Workbook
@@ -275,7 +268,38 @@ def plot_sensitivity_analysis_results(sobol_result):
             ],
         },
     )
-    fig.savefig("3_Sobol_spider.png")
+    fig.savefig("3_Sobol_spider1.png")
+    plt.clf()
+    fig = sobol_result.plot_sobol(
+        radSc=1.9,
+        widthSc=0.7,
+        threshold=0.004, #0.015
+        groups={
+            " ": [
+                "pNE_mean",
+                # "pNE_dt",
+                # "pbiomass",
+                "pETS_2050",
+                # "pETS_dt",
+                "pelectricity_mean",
+                "Discount_rate",
+                # "CAPEX",
+                "OPEX_fixed",
+                "OPEX_variable",
+                # "Cost_transportation",
+                # "Cost_storage",
+                # "Learning_rate",
+                # "Availability_factor,"
+                "AUCTION", 
+                # "yEUint", 
+                # "yQUOTA", 
+                "yBIOban", 
+                "yCLAIM", 
+                # "ySHOCK",
+            ],
+        },
+    )
+    fig.savefig("3_Sobol_spider2.png")
 
 
 def plot_critical_uncertainties(model: Model, model_results: DataSet):

@@ -46,7 +46,7 @@ def evaluate_model(model: Model) -> DataSet:
 
     # 10 000 SOWs are evaluated, and in the full article this is repeated for
     # four energy price trends (i.e. by changing `pelectricity_dt` and `pheat_dt`).
-    SOWs = sample_lhs(model, 10000)
+    SOWs = sample_lhs(model, 100000)
     inputs = update(SOWs, POLICY)
     model_results = evaluate(model, inputs)
     return model_results
@@ -55,8 +55,8 @@ def evaluate_model(model: Model) -> DataSet:
 def conduct_sensitivity_analysis(model: Model, policy):
     print("-------------BEGIN SENSITIVITY ANALYSIS NOW-------------")
     # The sensitivity analysis indicates what uncertainties drive Regret. Using Sobols method, this is measured in 1st, 2nd and total order sensitivity indices.
-    # The article uses nsamples = 800 000, but for fast model evaluations nsamples = 10 000 can be used.
-    sobol_result = sa(model, "Regret", policy=policy, method="sobol", nsamples=10000)
+    # The article uses nsamples = 1 000 000, but for fast model evaluations nsamples = 10 000 can be used.
+    sobol_result = sa(model, "Regret", policy=policy, method="sobol", nsamples=1000000)
     return sobol_result
 
 
