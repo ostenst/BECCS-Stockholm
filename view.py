@@ -163,8 +163,8 @@ def plot_scenario_of_interest(model: Model, model_results: DataSet):
     # represents a discovered scenario. The drawing is hard coded and can be changed as desired, depending on the scenario of interest.
     fig = scatter2d(model, model_results, x="yCLAIM", y="pNE_mean", c="Regret") 
     scenario_area = mpatches.Rectangle(
-        (2023, 174.4),
-        (2031 - 2023),
+        (2024, 174.4),
+        (2031 - 2024),
         500 - (174.4),
         fill=False,
         color="crimson",
@@ -179,8 +179,8 @@ def plot_scenario_of_interest(model: Model, model_results: DataSet):
     #-----------------The second scenario is evaluated below----------
     fig = scatter2d(model, model_results, x="yCLAIM", y="yBIOban", c="Regret")
     scenario_area = mpatches.Rectangle(
-        (2023, 2039),
-        (2033 - 2023),
+        (2024, 2039),
+        (2033 - 2024),
         2050 - (2039),
         fill=False,
         color="crimson",
@@ -193,8 +193,8 @@ def plot_scenario_of_interest(model: Model, model_results: DataSet):
 
     fig = scatter2d(model, model_results, x="yCLAIM", y="yBIOban", c="pNE_supported")
     scenario_area = mpatches.Rectangle(
-        (2023, 2038),
-        (2034 - 2023),
+        (2024, 2038),
+        (2034 - 2024),
         2050 - (2038),
         fill=False,
         color="crimson",

@@ -133,7 +133,7 @@ def find_sell_prices(pmean, pvolatility, pfloor, ySHOCK):
 
         # If a year of a price shock is reached, new prices are temporarily heightened by ~80 %. This assumption is in-line with the historic electricity prices of the Stockholm area in 2022:
         # https://www.vattenfall.se/elavtal/elpriser/rorligt-elpris/prishistorik/
-        if 2023+t == round(ySHOCK):
+        if 2024+t == round(ySHOCK):
             pnew = pnew*1.8
 
         pvec.append(pnew)
@@ -298,7 +298,7 @@ def BECCS_investment(
     NPV_wait = 0
     for t in range(0, 27):
         CF = calculate_cash_flow(t, plant, pelectricity, pheat, pbiomass, wait=True)
-        if 2023 + t >= yBIOban:
+        if 2024 + t >= yBIOban:
             CF -= (
                 plant.CO2captured * pETS[t]
             )  # yBIOban represents a severe restriction of biomass usage, forcing the utility to pay for emission allowances for CO2 not captured.
@@ -449,7 +449,7 @@ def return_model() -> Model:
         UniformUncertainty("yQUOTA", 2030, 2050),
         UniformUncertainty("yEUint", 2035, 2050),
         UniformUncertainty("yBIOban", 2030, 2050),
-        UniformUncertainty("yCLAIM", 2023, 2050),
+        UniformUncertainty("yCLAIM", 2024, 2050),
         UniformUncertainty("ySHOCK", 2030, 2050),
     ]
     return model
