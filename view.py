@@ -18,6 +18,7 @@ import openpyxl
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 from typing import List, Dict
+from PIL import Image
 
 
 def plot_results(model: Model, model_results: DataSet):
@@ -205,7 +206,32 @@ def plot_scenario_of_interest(model: Model, model_results: DataSet):
     fig.savefig("4_Scenario_3.png")
     plt.clf()
     # 205	Reliable	80.28449502133712	65.30247933884297	yBIOban > 2037.990173	yCLAIM <= 2034.062439					
-    # 319	Reliable	92.49519255755938	58.833057851239666	pNE_mean > 187.008896	yBIOban > 2037.990173	yCLAIM <= 2034.062439				
+    # 319	Reliable	92.49519255755938	58.833057851239666	pNE_mean > 187.008896	yBIOban > 2037.990173	yCLAIM <= 2034.062439	
+        
+    # crop the right side of fig2 and fig3 by 5%
+    img2 = Image.open("4_Scenario_2.png")
+    img2_width, img2_height = img2.size
+    img2_cropped = img2.crop((0, 0, int(img2_width * 0.95), img2_height))
+    img2_cropped.save("4_Scenario_2_cropped.png")
+
+    img3 = Image.open("4_Scenario_3.png")
+    img3_width, img3_height = img3.size
+    img3_cropped = img3.crop((0, 0, int(img3_width * 0.95), img3_height))
+    img3_cropped.save("4_Scenario_3_cropped.png")
+
+    # create a new figure and combine fig2 and fig3
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 6))
+    ax1.imshow(img2_cropped)
+    ax1.set_title("Scenario 2")
+    ax1.axis("off")
+    ax2.imshow(img3_cropped)
+    ax2.set_title("Scenario 3")
+    ax2.axis("off")
+
+    # adjust the layout and save the combined figure
+    plt.tight_layout()
+    plt.savefig("fig2_and_fig3.png")
+    plt.clf()
 
 def save_sensitivity_analysis(
     model: Model, sobol_result, RDM_results_excel: openpyxl.Workbook
@@ -309,3 +335,29 @@ def plot_critical_uncertainties(model: Model, model_results: DataSet):
 
     fig = scatter2d(model, model_results, x="AUCTION", y="yBIOban", c="Regret")
     fig.savefig("3_Sobol_Us2.png")
+
+
+    # crop the right side of fig2 and fig3 by 5%
+    img2 = Image.open("3_Sobol_Us1.png")
+    img2_width, img2_height = img2.size
+    img2_cropped = img2.crop((0, 0, int(img2_width * 0.95), img2_height))
+    img2_cropped.save("3_Sobol_Us1_cropped.png")
+
+    img3 = Image.open("3_Sobol_Us2.png")
+    img3_width, img3_height = img3.size
+    img3_cropped = img3.crop((0, 0, int(img3_width * 0.95), img3_height))
+    img3_cropped.save("3_Sobol_Us2_cropped.png")
+
+    # create a new figure and combine fig2 and fig3
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 6))
+    ax1.imshow(img2_cropped)
+    ax1.set_title("Scenario S1")
+    ax1.axis("off")
+    ax2.imshow(img3_cropped)
+    ax2.set_title("Scenario S2")
+    ax2.axis("off")
+
+    # adjust the layout and save the combined figure
+    plt.tight_layout()
+    plt.savefig("sobol1_and_2.png")
+    plt.clf()
