@@ -6,3 +6,9 @@
 - Why is price of biomass held constant?
 - What justification for the synthetic price functions?
 - Why set trajectories for `pelectricity_dt` and `pheat_dt` instead of including them in the uncertainties and using them as a means for exploring the scenario space?
+
+# WE SHOULD TRY THESE SCENARIO CLASSIFICATIONS:
+- What drives NPV<0? (i.e. Investing is useless)
+- What drives Regret!=0? (i.e. Waiting is better)
+- What is an ETSprice + ETSint scenario? (these should interact, but they dont?)
+- Maybe also Cost_specific vs NPV? Or vs elecprice?

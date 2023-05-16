@@ -34,10 +34,11 @@ def plot_results(model: Model, model_results: DataSet):
     fig = scatter2d(model, model_results, x="pNE_supported", y="NPV_invest", c="Regret")
     fig.savefig("2_NPV_pNE.png")
     
-    fig = scatter2d(
-        model, model_results, x="Cost_specific", y="pNE_supported", c="Regret"
-    )
+    fig = scatter2d(model, model_results, x="Cost_specific", y="pNE_supported", c="Regret")
     fig.savefig("2_pNE_Costs.png")
+
+    fig = scatter2d(model, model_results, x="Cost_specific", y="NPV_invest", c="Regret")
+    fig.savefig("2_NPV_Costs.png")
 
     joint(model, model_results, x="Cost_specific", y="pNE_supported", color="turquoise")
     plt.savefig("2_Costs_distr.png")
@@ -92,7 +93,12 @@ def robustness_analysis(model_results: DataSet):
 def scenario_discovery(model: Model, model_results: DataSet) -> list:
     # The scenario discovery produces ranges of uncertainties (i.e. scenarios) where Invest performs well (i.e. have Regret = 0).
     print("-------------BEGIN SCENARIO DISCOVERY NOW-------------")
-    classification = model_results.apply("'Reliable' if (Regret == 0 and NPV_invest >= 0) else 'Unreliable'") # Regret == 0 and NPV_invest >= 0 # pNE_supported-Cost_specific > 0
+    classification = model_results.apply("'Reliable' if (Regret == 0 and NPV_invest >= 0) else 'Unreliable'") 
+    # Alternative classifications that can be applied depending on what analysis is made:
+    # Regret == 0 and NPV_invest >= 0 
+    # pNE_supported-Cost_specific > 0
+    # Regret != 0
+    
     cart_results = Cart(
         model_results,
         classification,
@@ -231,6 +237,22 @@ def plot_scenario_of_interest(model: Model, model_results: DataSet):
     # adjust the layout and save the combined figure
     plt.tight_layout()
     plt.savefig("fig2_and_fig3.png")
+    plt.clf()
+
+    #Below is looking for scenarios with Regret !=0
+    # 1026	Reliable	84.24344610029371	63.85504916208027	pelectricity_mean > 66.364597	yCLAIM > 2034.223267
+    fig = scatter2d(model, model_results, x="yCLAIM", y="pelectricity_mean", c="Regret")
+    scenario_area = mpatches.Rectangle(
+        (2034, 66),
+        (2050 - 2034),
+        160 - (66),
+        fill=False,
+        color="crimson",
+        linewidth=3,
+    )
+    # facecolor="red")
+    plt.gca().add_patch(scenario_area)
+    fig.savefig("4_Scenario_4.png")
     plt.clf()
 
 def save_sensitivity_analysis(
