@@ -52,9 +52,9 @@ def plot_results(model: Model, model_results: DataSet):
     plt.savefig("2_Responses_Pair.png")
     plt.clf()
     
-    n_successful   = len(model_results.find("Regret==0 and pNE_supported>150"))
-    n_unsuccessful = len(model_results.find("Regret >0 and pNE_supported>150"))
-    print( n_successful/(n_successful+n_unsuccessful)*100 , "% of scenarios have Regret = 0 when the NE price is above 150 EUR/t") #94%
+    n_successful   = len(model_results.find("Regret==0 and pNE_supported>120"))
+    n_unsuccessful = len(model_results.find("Regret >0 and pNE_supported>120"))
+    print( n_successful/(n_successful+n_unsuccessful)*100 , "% of scenarios have Regret = 0 when the NE price is above 120 EUR/t") #94%
 
 def robustness_analysis(model_results: DataSet):
     """Prints robustness analytics to the terminal"""

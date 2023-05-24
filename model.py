@@ -429,12 +429,12 @@ def return_model() -> Model:
 
     # For uncertainties, some are expanded ranges around values found in the literature, and some are assumed. Refer to full article.
     model.uncertainties = [
-        UniformUncertainty("pNE_mean", 100, 500), #20-400
+        UniformUncertainty("pNE_mean", 100, 300), #20-400 or 100-500... oooor: 100-300(DACCS upper cost)
         UniformUncertainty("pNE_dt", 5, 50),
         UniformUncertainty("pbiomass", 15, 35), #15-35
         UniformUncertainty("pelectricity_mean",5,160), #KÅRE USED THIS
         UniformUncertainty("pelectricity_dt",5,40),
-        UniformUncertainty("pheat_mean",50, 150),
+        UniformUncertainty("pheat_mean",50, 150), #50 (from Exergi) or 40 (from Kåre)?
         UniformUncertainty("pheat_dt",1,20),
 
         UniformUncertainty("pETS_2050", 125, 375), #100-900, but Implement Consulting suggest others... IEA suggest 250? https://iea.blob.core.windows.net/assets/2db1f4ab-85c0-4dd0-9a57-32e542556a49/GlobalEnergyandClimateModelDocumentation2022.pdf 
