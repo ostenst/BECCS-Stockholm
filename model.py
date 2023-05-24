@@ -163,22 +163,25 @@ class BeccsPlant:
     OPEX_power_plant: float
     """
 
-    Qbiomass_input: float = 362  # [MW]
-    Wpower_output_wait: float = 110  # [MW]
-    Qheat_output_wait: float = 287  # [MW]
-    Wpower_output_invest: float = 53  # [MW]
-    Qheat_output_invest: float = 337  # [MW]
+    Qbiomass_input: float = 400  # [MW]
+    Wpower_output_wait: float = 118  # [MW]
+    Qheat_output_wait: float = 330  # [MW]
+    Wpower_output_invest: float = 40  # [MW]
+    Qheat_output_invest: float = 424  # [MW]
 
     Operating_hours: float = (
         8760 * 0.7
     )  # [h] rule of thumb of ~70 % operating hours/year.
-    CO2capture_rate: float = 0.3  # [tCO2/MWh_biomass]
+    # CO2capture_rate: float = 0.3  # [tCO2/MWh_biomass]
+    CO2capture_rate: float = 140  # [tCO2/h]
 
     CO2captured: float = field(init=False)  # [tCO2/year]
     OPEX_power_plant: float = field(init=False)  # [EUR/year]
 
     # [tCO2/year] NOTE: SHOULD BE ABOUT 33% HIGHER
-    CO2captured = CO2capture_rate * Qbiomass_input * Operating_hours 
+    # CO2captured = CO2capture_rate * Qbiomass_input * Operating_hours 
+    CO2captured = CO2capture_rate * Operating_hours
+    
     # [EUR/year], see full article for these operational costs.
     OPEX_power_plant = 29000 * Qbiomass_input + 0.5 * Operating_hours * Qbiomass_input
 
