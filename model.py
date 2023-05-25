@@ -102,7 +102,7 @@ def find_pETS(pETS_2050, pETS_dt):
     for t in range(1,27):
         pETS_new = (pETS_2050-pETS_2024)/(2050-2024)*t + pETS_2024
         pchange = random.uniform(-pETS_dt,pETS_dt)
-        pETS_new = pETS_new + pchange
+        pETS_new = pETS_new * (1 + pchange)
         pETS_vec.append(pETS_new)
     return pETS_vec
 
@@ -129,7 +129,7 @@ def find_sell_prices(pmean, pvolatility, pfloor, ySHOCK):
         if pmean + pchange < pfloor:
             pnew = pfloor
         else:
-            pnew = pmean + pchange
+            pnew = pmean * (1 + pchange)
 
         # If a year of a price shock is reached, new prices are temporarily heightened by ~80 %. This assumption is in-line with the historic electricity prices of the Stockholm area in 2022:
         # https://www.vattenfall.se/elavtal/elpriser/rorligt-elpris/prishistorik/
@@ -430,15 +430,15 @@ def return_model() -> Model:
     # For uncertainties, some are expanded ranges around values found in the literature, and some are assumed. Refer to full article.
     model.uncertainties = [
         UniformUncertainty("pNE_mean", 30, 300), #20-400 or 100-500... oooor: 100-300(DACCS upper cost). If 30 lower end, justify by referring to ETS=100.
-        UniformUncertainty("pNE_dt", 5, 50),
+        UniformUncertainty("pNE_dt", 0.01, 0.50),
         UniformUncertainty("pbiomass", 15, 35), #15-35
-        UniformUncertainty("pelectricity_mean",5,160), #KÅRE USED THIS
-        UniformUncertainty("pelectricity_dt",5,40),
+        UniformUncertainty("pelectricity_mean",20,160), #KÅRE USED THIS
+        UniformUncertainty("pelectricity_dt",0.01,0.50),
         UniformUncertainty("pheat_mean",50, 150), #50 (from Exergi) or 40 (from Kåre)?
-        UniformUncertainty("pheat_dt",1,20),
+        UniformUncertainty("pheat_dt",0.01,0.50),
 
         UniformUncertainty("pETS_2050", 125, 375), #100-900, but Implement Consulting suggest others... IEA suggest 250? https://iea.blob.core.windows.net/assets/2db1f4ab-85c0-4dd0-9a57-32e542556a49/GlobalEnergyandClimateModelDocumentation2022.pdf 
-        UniformUncertainty("pETS_dt", 5, 90),
+        UniformUncertainty("pETS_dt", 0.01, 0.50),
         UniformUncertainty("Discount_rate", 0.04, 0.10), 
         UniformUncertainty("CAPEX", 100 * 10**6, 300 * 10**6),
         UniformUncertainty("OPEX_fixed", 10 * 10**6, 30 * 10**6), #18-22 or 10-30 (mean 20)

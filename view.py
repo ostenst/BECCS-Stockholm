@@ -98,6 +98,7 @@ def scenario_discovery(model: Model, model_results: DataSet) -> list:
     # Regret == 0 and NPV_invest >= 0 # Drivers are then: yCLAM and pelectricity
     # pNE_supported-Cost_specific > 0
     # Regret != 0
+    # Maybe find scenarios based on Exergi adaptation: pelectricity-pheat < 40 MWh. In such scenarios, what are the key drivers?
     
     cart_results = Cart(
         model_results,
@@ -200,14 +201,14 @@ def plot_scenario_of_interest(model: Model, model_results: DataSet):
     plt.clf()
 
     #-----------------The 3rd scenario is plotted below----------
-    fig = scatter2d(model, model_results, x="yCLAIM", y="yBIOban", c="pNE_supported")
+    fig = scatter2d(model, model_results.find("Regret > 1*10**9"), x="Cost_specific", y="pNE_supported", c="pelectricity_mean") #, s="pelectricity_mean", s_range = (10, 50)
     scenario_area = mpatches.Rectangle(
-        (2024, 2038),
-        (2034 - 2024),
-        2050 - (2038),
-        fill=False,
-        color="crimson",
-        linewidth=3,
+        (0, 75),
+        (140 - 0),
+        300 - (75),
+        fill=True,
+        color="white",
+        linewidth=1,
     )
     # facecolor="red")
     plt.gca().add_patch(scenario_area)
@@ -295,11 +296,12 @@ def plot_sensitivity_analysis_results(sobol_result):
                 "pETS_2050",
                 # "pETS_dt",
                 "pelectricity_mean",
+                "pheat_mean",
             ],
             "BECCS financials": [
                 "Discount_rate",
                 # "CAPEX",
-                "OPEX_fixed",
+                # "OPEX_fixed",
                 "OPEX_variable",
                 # "Cost_transportation",
                 # "Cost_storage",
@@ -330,9 +332,10 @@ def plot_sensitivity_analysis_results(sobol_result):
                 "pETS_2050",
                 # "pETS_dt",
                 "pelectricity_mean",
+                "pheat_mean",
                 "Discount_rate",
                 # "CAPEX",
-                "OPEX_fixed",
+                # "OPEX_fixed",
                 "OPEX_variable",
                 # "Cost_transportation",
                 # "Cost_storage",
