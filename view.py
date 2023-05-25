@@ -99,7 +99,7 @@ def scenario_discovery(model: Model, model_results: DataSet) -> list:
     # pNE_supported-Cost_specific > 0
     # Regret != 0
     # Maybe find scenarios based on Exergi adaptation: pelectricity-pheat < 40 MWh. In such scenarios, what are the key drivers?
-    
+
     cart_results = Cart(
         model_results,
         classification,
@@ -182,7 +182,7 @@ def plot_scenario_of_interest(model: Model, model_results: DataSet):
     )
     # facecolor="red")
     plt.gca().add_patch(scenario_area)
-    fig.savefig("4_Scenario_1.png") 
+    fig.savefig("4_Scenario_1.png", dpi=600) 
     plt.clf()
 
     #-----------------The 2nd scenario is plotted below----------
@@ -197,22 +197,25 @@ def plot_scenario_of_interest(model: Model, model_results: DataSet):
     )
     # facecolor="red")
     plt.gca().add_patch(scenario_area)
-    fig.savefig("4_Scenario_2.png")
+    fig.savefig("4_Scenario_2.png", dpi=600)
     plt.clf()
 
     #-----------------The 3rd scenario is plotted below----------
     fig = scatter2d(model, model_results.find("Regret > 1*10**9"), x="Cost_specific", y="pNE_supported", c="pelectricity_mean") #, s="pelectricity_mean", s_range = (10, 50)
     scenario_area = mpatches.Rectangle(
-        (0, 75),
+        (0, 280),
         (140 - 0),
-        300 - (75),
+        300 - (280),
         fill=True,
         color="white",
         linewidth=1,
     )
     # facecolor="red")
     plt.gca().add_patch(scenario_area)
-    fig.savefig("4_Scenario_3.png")
+
+    fig = scatter3d(model, model_results.find("Regret!=0"), x="Cost_specific", y="pNE_supported", z="pelectricity_mean", c="Regret")
+
+    fig.savefig("4_Scenario_3.png", dpi=600)
     plt.clf()
 
     #-----------------The 4th scenario is plotted below----------
@@ -227,34 +230,53 @@ def plot_scenario_of_interest(model: Model, model_results: DataSet):
     )
     # facecolor="red")
     plt.gca().add_patch(scenario_area)
-    fig.savefig("4_Scenario_4.png")
+    fig.savefig("4_Scenario_4.png", dpi=600)
     plt.clf()
 
-    # #-----------------These rows can be used to combine plots into subplots----------
-    # # crop the right side of fig2 and fig3 by 5%
-    # img2 = Image.open("4_Scenario_2.png")
-    # img2_width, img2_height = img2.size
-    # img2_cropped = img2.crop((0, 0, int(img2_width * 0.95), img2_height))
-    # img2_cropped.save("4_Scenario_2_cropped.png")
+    #-----------------These rows can be used to combine plots into subplots----------
+    # crop the right side of fig2 and fig3 by 5%
+    img1 = Image.open("4_Scenario_1.png")
+    img1_width, img1_height = img1.size
+    img1_cropped = img1.crop((0, img1_width * 0.05, img1_width * 0.95, img1_height * 0.95))
+    img1_cropped.save("4_Scenario_1_cropped.png")
 
-    # img3 = Image.open("4_Scenario_3.png")
-    # img3_width, img3_height = img3.size
-    # img3_cropped = img3.crop((0, 0, int(img3_width * 0.95), img3_height))
-    # img3_cropped.save("4_Scenario_3_cropped.png")
+    img2 = Image.open("4_Scenario_2.png")
+    img2_width, img2_height = img2.size
+    img2_cropped = img2.crop((0, img2_width * 0.05, img2_width * 0.95, img2_height * 0.95))
+    img2_cropped.save("4_Scenario_2_cropped.png")
 
-    # # create a new figure and combine fig2 and fig3
-    # fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 6))
-    # ax1.imshow(img2_cropped)
-    # ax1.set_title("Scenario 2")
-    # ax1.axis("off")
-    # ax2.imshow(img3_cropped)
-    # ax2.set_title("Scenario 3")
-    # ax2.axis("off")
+    img3 = Image.open("4_Scenario_3.png")
+    img3_width, img3_height = img3.size
+    img3_cropped = img3.crop((0, img3_width * 0.05, img3_width * 0.95, img3_height * 0.95))
+    img3_cropped.save("4_Scenario_3_cropped.png")
 
-    # # adjust the layout and save the combined figure
-    # plt.tight_layout()
-    # plt.savefig("fig2_and_fig3.png")
-    # plt.clf()
+    img4 = Image.open("4_Scenario_4.png")
+    img4_width, img4_height = img4.size
+    img4_cropped = img4.crop((0, img4_width * 0.05, img4_width * 0.95, img4_height * 0.95))
+    img4_cropped.save("4_Scenario_4_cropped.png")
+
+    # create a new figure and combine fig2 and fig3
+    fig, axs = plt.subplots(2, 2, figsize=(12,9))
+    axs[0,0].imshow(img1_cropped)
+    axs[0,0].set(xlabel="(a)")
+    axs[0,0].axis("off")
+    axs[0,1].imshow(img2_cropped)
+    axs[0,1].set(xlabel="(b)")
+    axs[0,1].axis("off")
+    axs[1,0].imshow(img3_cropped)
+    axs[1,0].set(xlabel="(c)")
+    axs[1,0].axis("off")
+    axs[1,1].imshow(img4_cropped)
+    axs[1,1].set(xlabel="(d)")
+    axs[1,1].axis("off")
+
+    # adjust the layout by reducing the height spacing between subplots
+    plt.subplots_adjust(hspace=0)
+
+    # adjust the layout and save the combined figure
+    plt.tight_layout()
+    plt.savefig("fig2_and_fig3.png")
+    plt.clf()
 
 def save_sensitivity_analysis(
     model: Model, sobol_result, RDM_results_excel: openpyxl.Workbook
