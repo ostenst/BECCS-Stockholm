@@ -12,7 +12,7 @@ __author__ = "Oscar Stenström"
 __date__ = "2023-02-16"
 
 from scipy.optimize import brentq as root
-from rhodium import scatter2d, Cart, pairs, DataSet, Model, joint, scatter3d
+from rhodium import scatter2d, Cart, pairs, DataSet, Model, joint
 import csv
 import openpyxl
 import matplotlib.pyplot as plt
