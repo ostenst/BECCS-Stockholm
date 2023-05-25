@@ -95,7 +95,7 @@ def scenario_discovery(model: Model, model_results: DataSet) -> list:
     print("-------------BEGIN SCENARIO DISCOVERY NOW-------------")
     classification = model_results.apply("'Reliable' if (Regret == 0 and NPV_invest >= 0) else 'Unreliable'") 
     # Alternative classifications that can be applied depending on what analysis is made:
-    # Regret == 0 and NPV_invest >= 0 
+    # Regret == 0 and NPV_invest >= 0 # Drivers are then: yCLAM and pelectricity
     # pNE_supported-Cost_specific > 0
     # Regret != 0
     
@@ -168,11 +168,13 @@ def plot_scenario_of_interest(model: Model, model_results: DataSet):
     # The Rules (uncertainty ranges) of a scenario node of interest (as found in the CART_results sheet) can be illustrated.
     # This is done by drawing a scenario rectangle representing these uncertainty ranges. The resulting "box" then graphically
     # represents a discovered scenario. The drawing is hard coded and can be changed as desired, depending on the scenario of interest.
+
+    #-----------------The 1st scenario is plotted below----------
     fig = scatter2d(model, model_results, x="yCLAIM", y="pNE_mean", c="Regret") 
     scenario_area = mpatches.Rectangle(
         (2024, 174.4),
         (2031 - 2024),
-        500 - (174.4),
+        300 - (174.4),
         fill=False,
         color="crimson",
         linewidth=3,
@@ -181,9 +183,8 @@ def plot_scenario_of_interest(model: Model, model_results: DataSet):
     plt.gca().add_patch(scenario_area)
     fig.savefig("4_Scenario_1.png") 
     plt.clf()
-    # 120	Reliable	96.36846767050487	45.55478018143754	pNE_mean > 174.424568	yCLAIM <= 2030.878113
 
-    #-----------------The second scenario is evaluated below----------
+    #-----------------The 2nd scenario is plotted below----------
     fig = scatter2d(model, model_results, x="yCLAIM", y="yBIOban", c="Regret")
     scenario_area = mpatches.Rectangle(
         (2024, 2039),
@@ -198,6 +199,7 @@ def plot_scenario_of_interest(model: Model, model_results: DataSet):
     fig.savefig("4_Scenario_2.png")
     plt.clf()
 
+    #-----------------The 3rd scenario is plotted below----------
     fig = scatter2d(model, model_results, x="yCLAIM", y="yBIOban", c="pNE_supported")
     scenario_area = mpatches.Rectangle(
         (2024, 2038),
@@ -211,36 +213,8 @@ def plot_scenario_of_interest(model: Model, model_results: DataSet):
     plt.gca().add_patch(scenario_area)
     fig.savefig("4_Scenario_3.png")
     plt.clf()
-    # 205	Reliable	80.28449502133712	65.30247933884297	yBIOban > 2037.990173	yCLAIM <= 2034.062439					
-    # 319	Reliable	92.49519255755938	58.833057851239666	pNE_mean > 187.008896	yBIOban > 2037.990173	yCLAIM <= 2034.062439	
-        
-    # crop the right side of fig2 and fig3 by 5%
-    img2 = Image.open("4_Scenario_2.png")
-    img2_width, img2_height = img2.size
-    img2_cropped = img2.crop((0, 0, int(img2_width * 0.95), img2_height))
-    img2_cropped.save("4_Scenario_2_cropped.png")
 
-    img3 = Image.open("4_Scenario_3.png")
-    img3_width, img3_height = img3.size
-    img3_cropped = img3.crop((0, 0, int(img3_width * 0.95), img3_height))
-    img3_cropped.save("4_Scenario_3_cropped.png")
-
-    # create a new figure and combine fig2 and fig3
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 6))
-    ax1.imshow(img2_cropped)
-    ax1.set_title("Scenario 2")
-    ax1.axis("off")
-    ax2.imshow(img3_cropped)
-    ax2.set_title("Scenario 3")
-    ax2.axis("off")
-
-    # adjust the layout and save the combined figure
-    plt.tight_layout()
-    plt.savefig("fig2_and_fig3.png")
-    plt.clf()
-
-    #Below is looking for scenarios with Regret !=0
-    # 1026	Reliable	84.24344610029371	63.85504916208027	pelectricity_mean > 66.364597	yCLAIM > 2034.223267
+    #-----------------The 4th scenario is plotted below----------
     fig = scatter2d(model, model_results, x="yCLAIM", y="pelectricity_mean", c="Regret")
     scenario_area = mpatches.Rectangle(
         (2034, 66),
@@ -254,6 +228,32 @@ def plot_scenario_of_interest(model: Model, model_results: DataSet):
     plt.gca().add_patch(scenario_area)
     fig.savefig("4_Scenario_4.png")
     plt.clf()
+
+    # #-----------------These rows can be used to combine plots into subplots----------
+    # # crop the right side of fig2 and fig3 by 5%
+    # img2 = Image.open("4_Scenario_2.png")
+    # img2_width, img2_height = img2.size
+    # img2_cropped = img2.crop((0, 0, int(img2_width * 0.95), img2_height))
+    # img2_cropped.save("4_Scenario_2_cropped.png")
+
+    # img3 = Image.open("4_Scenario_3.png")
+    # img3_width, img3_height = img3.size
+    # img3_cropped = img3.crop((0, 0, int(img3_width * 0.95), img3_height))
+    # img3_cropped.save("4_Scenario_3_cropped.png")
+
+    # # create a new figure and combine fig2 and fig3
+    # fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 6))
+    # ax1.imshow(img2_cropped)
+    # ax1.set_title("Scenario 2")
+    # ax1.axis("off")
+    # ax2.imshow(img3_cropped)
+    # ax2.set_title("Scenario 3")
+    # ax2.axis("off")
+
+    # # adjust the layout and save the combined figure
+    # plt.tight_layout()
+    # plt.savefig("fig2_and_fig3.png")
+    # plt.clf()
 
 def save_sensitivity_analysis(
     model: Model, sobol_result, RDM_results_excel: openpyxl.Workbook

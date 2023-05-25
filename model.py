@@ -429,7 +429,7 @@ def return_model() -> Model:
 
     # For uncertainties, some are expanded ranges around values found in the literature, and some are assumed. Refer to full article.
     model.uncertainties = [
-        UniformUncertainty("pNE_mean", 100, 300), #20-400 or 100-500... oooor: 100-300(DACCS upper cost)
+        UniformUncertainty("pNE_mean", 30, 300), #20-400 or 100-500... oooor: 100-300(DACCS upper cost). If 30 lower end, justify by referring to ETS=100.
         UniformUncertainty("pNE_dt", 5, 50),
         UniformUncertainty("pbiomass", 15, 35), #15-35
         UniformUncertainty("pelectricity_mean",5,160), #KÅRE USED THIS
@@ -442,7 +442,7 @@ def return_model() -> Model:
         UniformUncertainty("Discount_rate", 0.04, 0.10), 
         UniformUncertainty("CAPEX", 100 * 10**6, 300 * 10**6),
         UniformUncertainty("OPEX_fixed", 10 * 10**6, 30 * 10**6), #18-22 or 10-30 (mean 20)
-        UniformUncertainty("OPEX_variable", 33, 55),    #33-55 or 22-66 (mean 44)... but this contains elec penalty?
+        UniformUncertainty("OPEX_variable", 18.5, 55.5),    #33-55 or 22-66 (mean 44)... but this contains elec penalty? NEW: Use mean 37, but motivate +- heat/elec prices. Beiron: 15-30.
         UniformUncertainty("Cost_transportation", 17, 27),
         UniformUncertainty("Cost_storage", 6, 23),
         UniformUncertainty("Learning_rate", 0.0075, 0.0125),
