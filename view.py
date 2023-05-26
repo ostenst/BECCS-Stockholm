@@ -175,13 +175,14 @@ def plot_scenario_of_interest(model: Model, model_results: DataSet):
     # represents a discovered scenario. The drawing is hard coded and can be changed as desired, depending on the scenario of interest.
 
     #-----------------The 1st scenario is plotted below----------
-    fig = scatter2d(model, model_results, x="yCLAIM", y="pNE_mean", c="Regret") 
+    # 2	Reliable	91.54516608426718	39.385508648844805	pelectricity_mean <= 109.776455	yCLAIM <= 2034.040527 (REGRET = 0)
+    fig = scatter2d(model, model_results, x="yCLAIM", y="pelectricity_mean", c="Regret") 
     scenario_area = mpatches.Rectangle(
-        (2024, 174.4),
-        (2031 - 2024),
-        300 - (174.4),
+        (2024, 20),
+        (2034 - 2024),
+        110 - (20),
         fill=False,
-        color="crimson",
+        color="gold",
         linewidth=3,
     )
     # facecolor="red")
@@ -190,11 +191,12 @@ def plot_scenario_of_interest(model: Model, model_results: DataSet):
     plt.clf()
 
     #-----------------The 2nd scenario is plotted below----------
-    fig = scatter2d(model, model_results, x="yCLAIM", y="yBIOban", c="Regret")
+    # 1170	Reliable	75.04733607154301	61.26316790716477	pelectricity_mean > 81.914059	yCLAIM > 2034.032410 (REGRET != 0)
+    fig = scatter2d(model, model_results, x="yCLAIM", y="pelectricity_mean", c="Regret")
     scenario_area = mpatches.Rectangle(
-        (2024, 2039),
-        (2033 - 2024),
-        2050 - (2039),
+        (2034, 82),
+        (2050 - 2034),
+        160 - (82),
         fill=False,
         color="crimson",
         linewidth=3,
@@ -205,32 +207,34 @@ def plot_scenario_of_interest(model: Model, model_results: DataSet):
     plt.clf()
 
     #-----------------The 3rd scenario is plotted below----------
-    fig = scatter2d(model, model_results.find("Regret > 1*10**9"), x="Cost_specific", y="pNE_supported", c="pelectricity_mean") #, s="pelectricity_mean", s_range = (10, 50)
+    # 206	Reliable	96.2998361551065	29.347147671951067	pNE_mean > 150.728317	yCLAIM <= 2030.209717 (REGRET = 0 AND Pelec>82)
+    fig = scatter2d(model, model_results.find("pelectricity_mean>82"), x="yCLAIM", y="pNE_mean", c="Regret") 
     scenario_area = mpatches.Rectangle(
-        (0, 280),
-        (140 - 0),
-        300 - (280),
-        fill=True,
-        color="white",
-        linewidth=1,
+        (2024, 151),
+        (2030 - 2024),
+        300 - (151),
+        fill=False,
+        color="crimson",
+        linewidth=3,
+        linestyle = 'dashed',
     )
     # facecolor="red")
     plt.gca().add_patch(scenario_area)
-
-    fig = scatter3d(model, model_results.find("Regret!=0"), x="Cost_specific", y="pNE_supported", z="pelectricity_mean", c="Regret")
-
     fig.savefig("4_Scenario_3.png", dpi=600)
     plt.clf()
 
     #-----------------The 4th scenario is plotted below----------
-    fig = scatter2d(model, model_results, x="yCLAIM", y="pelectricity_mean", c="Regret")
+    # 95	Reliable	70.06802721088435	39.56005586592179	pETS_2050 > 232.763702	yBIOban <= 2034.975525 (REGRET = 0, AND Pelec>82 AND yCLAIM>2034)
+    # 169	Reliable	88.32214765100672	22.97486033519553	pETS_2050 > 232.763702	AUCTION > 0.532030	yBIOban <= 2034.975525
+    fig = scatter2d(model, model_results.find("pelectricity_mean>82 and yCLAIM>2034"), x="pETS_2050", y="yBIOban", c="Regret")
     scenario_area = mpatches.Rectangle(
-        (2034, 66),
-        (2050 - 2034),
-        160 - (66),
+        (233, 2030),
+        (375 - 233),
+        2035 - (2030),
         fill=False,
         color="crimson",
         linewidth=3,
+        linestyle = 'dashed',
     )
     # facecolor="red")
     plt.gca().add_patch(scenario_area)
@@ -262,7 +266,7 @@ def plot_scenario_of_interest(model: Model, model_results: DataSet):
     # create a new figure and combine fig2 and fig3
     fig, axs = plt.subplots(2, 2, figsize=(12,9))
     axs[0,0].imshow(img1_cropped)
-    axs[0,0].set(xlabel="(a)")
+    axs[0,0].set_xlabel("(a)", fontsize=12)
     axs[0,0].axis("off")
     axs[0,1].imshow(img2_cropped)
     axs[0,1].set(xlabel="(b)")
@@ -275,7 +279,7 @@ def plot_scenario_of_interest(model: Model, model_results: DataSet):
     axs[1,1].axis("off")
 
     # adjust the layout by reducing the height spacing between subplots
-    plt.subplots_adjust(hspace=0)
+    # plt.subplots_adjust(hspace=0)
 
     # adjust the layout and save the combined figure
     plt.tight_layout()
