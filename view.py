@@ -91,6 +91,10 @@ def robustness_analysis(model_results: DataSet):
 
 
 def scenario_discovery(model: Model, model_results: DataSet) -> list:
+    #NOW I WANT TO FIND THE INTERESTING SCENARIOS. WITH EXACT VALUES!
+    #1) Find Regret=0. See what pop outs.
+
+
     # The scenario discovery produces ranges of uncertainties (i.e. scenarios) where Invest performs well (i.e. have Regret = 0).
     print("-------------BEGIN SCENARIO DISCOVERY NOW-------------")
     classification = model_results.apply("'Reliable' if (Regret == 0 and NPV_invest >= 0) else 'Unreliable'") 
@@ -237,22 +241,22 @@ def plot_scenario_of_interest(model: Model, model_results: DataSet):
     # crop the right side of fig2 and fig3 by 5%
     img1 = Image.open("4_Scenario_1.png")
     img1_width, img1_height = img1.size
-    img1_cropped = img1.crop((0, img1_width * 0.05, img1_width * 0.95, img1_height * 0.95))
+    img1_cropped = img1.crop((0, img1_width * 0.05, img1_width * 0.95, img1_height))
     img1_cropped.save("4_Scenario_1_cropped.png")
 
     img2 = Image.open("4_Scenario_2.png")
     img2_width, img2_height = img2.size
-    img2_cropped = img2.crop((0, img2_width * 0.05, img2_width * 0.95, img2_height * 0.95))
+    img2_cropped = img2.crop((0, img2_width * 0.05, img2_width * 0.95, img2_height))
     img2_cropped.save("4_Scenario_2_cropped.png")
 
     img3 = Image.open("4_Scenario_3.png")
     img3_width, img3_height = img3.size
-    img3_cropped = img3.crop((0, img3_width * 0.05, img3_width * 0.95, img3_height * 0.95))
+    img3_cropped = img3.crop((0, img3_width * 0.05, img3_width * 0.95, img3_height))
     img3_cropped.save("4_Scenario_3_cropped.png")
 
     img4 = Image.open("4_Scenario_4.png")
     img4_width, img4_height = img4.size
-    img4_cropped = img4.crop((0, img4_width * 0.05, img4_width * 0.95, img4_height * 0.95))
+    img4_cropped = img4.crop((0, img4_width * 0.05, img4_width * 0.95, img4_height))
     img4_cropped.save("4_Scenario_4_cropped.png")
 
     # create a new figure and combine fig2 and fig3
@@ -275,7 +279,7 @@ def plot_scenario_of_interest(model: Model, model_results: DataSet):
 
     # adjust the layout and save the combined figure
     plt.tight_layout()
-    plt.savefig("fig2_and_fig3.png")
+    plt.savefig("4_Scenarios_ALL.png")
     plt.clf()
 
 def save_sensitivity_analysis(
@@ -382,29 +386,3 @@ def plot_critical_uncertainties(model: Model, model_results: DataSet):
 
     fig = scatter2d(model, model_results, x="AUCTION", y="yBIOban", c="Regret")
     fig.savefig("3_Sobol_Us2.png")
-
-
-    # crop the right side of fig2 and fig3 by 5%
-    img2 = Image.open("3_Sobol_Us1.png")
-    img2_width, img2_height = img2.size
-    img2_cropped = img2.crop((0, 0, int(img2_width * 0.95), img2_height))
-    img2_cropped.save("3_Sobol_Us1_cropped.png")
-
-    img3 = Image.open("3_Sobol_Us2.png")
-    img3_width, img3_height = img3.size
-    img3_cropped = img3.crop((0, 0, int(img3_width * 0.95), img3_height))
-    img3_cropped.save("3_Sobol_Us2_cropped.png")
-
-    # create a new figure and combine fig2 and fig3
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 6))
-    ax1.imshow(img2_cropped)
-    ax1.set_title("Scenario S1")
-    ax1.axis("off")
-    ax2.imshow(img3_cropped)
-    ax2.set_title("Scenario S2")
-    ax2.axis("off")
-
-    # adjust the layout and save the combined figure
-    plt.tight_layout()
-    plt.savefig("sobol1_and_2.png")
-    plt.clf()
