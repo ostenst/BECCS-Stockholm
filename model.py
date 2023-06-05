@@ -131,10 +131,10 @@ def find_sell_prices(pmean, pvolatility, pfloor, ySHOCK):
         else:
             pnew = pmean * (1 + pchange)
 
-        # If a year of a price shock is reached, new prices are temporarily heightened by ~80 %. This assumption is in-line with the historic electricity prices of the Stockholm area in 2022:
+        # If a year of a price shock is reached, new prices are temporarily heightened by ~90 %. This assumption is in-line with the historic electricity prices of the Stockholm area in 2022:
         # https://www.vattenfall.se/elavtal/elpriser/rorligt-elpris/prishistorik/
         if 2024+t == round(ySHOCK):
-            pnew = pnew*1.8
+            pnew = pnew*1.9
 
         pvec.append(pnew)
     return pvec
