@@ -9,7 +9,7 @@ To run the program, first follow the installation guide provided in the reposito
 this file "BECCS_investment_paper_version.py" is in the root "Rhodium" folder.
 """
 __author__ = "Oscar Stenström"
-__date__ = "2023-02-16"
+__date__ = "2023-06-05"
 
 from scipy.optimize import brentq as root
 from rhodium import scatter2d, Cart, pairs, DataSet, Model, joint
@@ -152,7 +152,7 @@ def save_scenario_discovery(node_list: list, RDM_results_excel: openpyxl.Workboo
     # Save discovered scenarios (in the node_list) to a CART excel sheet:
     sheet = RDM_results_excel.create_sheet("CART_results")
     RDM_results_excel.active = RDM_results_excel["CART_results"]
-    sheet["A1"] = "Node nr"
+    sheet["A1"] = "Scenario node nr"
     sheet["B1"] = "Class"
     sheet["C1"] = "Density"
     sheet["D1"] = "Coverage"
@@ -348,7 +348,7 @@ def plot_sensitivity_analysis_results(sobol_result):
             ],
         },
     )
-    fig.savefig("3_Sobol_spider1.png")
+    fig.savefig("3_Sobol_spider1.png", dpi=600)
     plt.clf()
     fig = sobol_result.plot_sobol(
         radSc=1.9,
@@ -380,7 +380,7 @@ def plot_sensitivity_analysis_results(sobol_result):
             ],
         },
     )
-    fig.savefig("3_Sobol_spider2.png")
+    fig.savefig("3_Sobol_spider2.png", dpi=600)
 
 
 def plot_critical_uncertainties(model: Model, model_results: DataSet):
