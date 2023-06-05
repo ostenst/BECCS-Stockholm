@@ -131,10 +131,10 @@ def find_sell_prices(pmean, pvolatility, pfloor, ySHOCK):
         else:
             pnew = pmean * (1 + pchange)
 
-        # If a year of a price shock is reached, new prices are temporarily heightened by ~80 %. This assumption is in-line with the historic electricity prices of the Stockholm area in 2022:
+        # If a year of a price shock is reached, new prices are temporarily heightened by ~90 %. This assumption is in-line with the historic electricity prices of the Stockholm area in 2022:
         # https://www.vattenfall.se/elavtal/elpriser/rorligt-elpris/prishistorik/
         if 2024+t == round(ySHOCK):
-            pnew = pnew*1.8
+            pnew = pnew*1.9
 
         pvec.append(pnew)
     return pvec
@@ -163,27 +163,91 @@ class BeccsPlant:
     OPEX_power_plant: float
     """
 
-    Qbiomass_input: float = 400  # [MW]
-    Wpower_output_wait: float = 118  # [MW]
-    Qheat_output_wait: float = 330  # [MW]
-    Wpower_output_invest: float = 40  # [MW]
-    Qheat_output_invest: float = 424  # [MW]
+    # Qbiomass_input: float = 400  # [MW]
+    # Wpower_output_wait: float = 118  # [MW]
+    # Qheat_output_wait: float = 330  # [MW]
+    # Wpower_output_invest: float = 40  # [MW]
+    # Qheat_output_invest: float = 424  # [MW]
 
-    Operating_hours: float = (
-        8760 * 0.7
-    )  # [h] rule of thumb of ~70 % operating hours/year.
-    # CO2capture_rate: float = 0.3  # [tCO2/MWh_biomass]
-    CO2capture_rate: float = 140  # [tCO2/h]
+    # Operating_hours: float = (
+    #     8760 * 0.7
+    # )  # [h] rule of thumb of ~70 % operating hours/year.
+    # # CO2capture_rate: float = 0.3  # [tCO2/MWh_biomass]
+    # CO2capture_rate: float = 140  # [tCO2/h]
 
-    CO2captured: float = field(init=False)  # [tCO2/year]
-    OPEX_power_plant: float = field(init=False)  # [EUR/year]
+    # CO2captured: float = field(init=False)  # [tCO2/year]
+    # OPEX_power_plant: float = field(init=False)  # [EUR/year]
 
-    # [tCO2/year] NOTE: SHOULD BE ABOUT 33% HIGHER
-    # CO2captured = CO2capture_rate * Qbiomass_input * Operating_hours 
-    CO2captured = CO2capture_rate * Operating_hours
+    # # [tCO2/year] NOTE: SHOULD BE ABOUT 33% HIGHER
+    # # CO2captured = CO2capture_rate * Qbiomass_input * Operating_hours 
+    # CO2captured = CO2capture_rate * Operating_hours
+    # print(Operating_hours)
+    # # [EUR/year], see full article for these operational costs.
+    # OPEX_power_plant = 29000 * Qbiomass_input + 0.5 * Operating_hours * Qbiomass_input
+
+    # Qbiomass_input: float = 400
+    # Wpower_output_wait: float = 118
+    # Qheat_output_wait: float = 330
+    # Wpower_output_invest: float = 40
+    # Qheat_output_invest: float = 424
+
+    # def __init__(self, Availability_factor):
+    #     self.Operating_hours = 8760 * Availability_factor
+    #     self.CO2capture_rate: float = 140
+    #     self.CO2captured: float = self.CO2capture_rate * self.Operating_hours
+    #     self.OPEX_power_plant: float = 29000 * self.Qbiomass_input + 0.5 * self.Operating_hours * self.Qbiomass_input
+
+    # Qbiomass_input: float = 400
+    # Wpower_output_wait: float = 118
+    # Qheat_output_wait: float = 330
+    # Wpower_output_invest: float = 40
+    # Qheat_output_invest: float = 424
+
+    # def __init__(self, Availability_factor):
+    #     self.Operating_hours = 8760 * Availability_factor
+    #     self.CO2capture_rate: float = 140
+    #     self.CO2captured: float = 0
+    #     self.OPEX_power_plant: float = 0
+    #     self.calculate_captured_CO2()
+    #     self.calculate_OPEX()
+
+    # def calculate_captured_CO2(self):
+    #     self.CO2captured = self.CO2capture_rate * self.Operating_hours
+
+    # def calculate_OPEX(self):
+    #     self.OPEX_power_plant = 29000 * self.Qbiomass_input + 0.5 * self.Operating_hours * self.Qbiomass_input
     
-    # [EUR/year], see full article for these operational costs.
-    OPEX_power_plant = 29000 * Qbiomass_input + 0.5 * Operating_hours * Qbiomass_input
+    Availability_factor: float
+
+    Qbiomass_input: float = 400  
+    Wpower_output_wait: float = 118  
+    Qheat_output_wait: float = 330  
+    Wpower_output_invest: float = 40 
+    Qheat_output_invest: float = 424
+
+    Operating_hours: float = field(init=False)  
+    CO2capture_rate: float = 140 
+
+    CO2captured: float = field(init=False)  
+    OPEX_power_plant: float = field(init=False)  
+
+    def __post_init__(self):
+        self.Operating_hours = 0
+        self.CO2captured = 0
+        self.OPEX_power_plant = 0
+        self.calculate_operating_hours()
+        self.calculate_captured_CO2()
+        self.calculate_OPEX()
+
+    def calculate_operating_hours(self):
+        self.Operating_hours = 8760 * self.Availability_factor
+
+    def calculate_captured_CO2(self):
+        self.CO2captured = self.CO2capture_rate * self.Operating_hours
+
+    def calculate_OPEX(self):
+        self.OPEX_power_plant = 29000 * self.Qbiomass_input + 0.5 * self.Operating_hours * self.Qbiomass_input
+
 
 
 def calculate_cash_flow(
@@ -243,7 +307,7 @@ def BECCS_investment(
     pETS_dt=0,  # -1 to +1,    sets exponential increase in ETS prices
     Discount_rate=0.06,  # [-]
     Learning_rate=0.01,  # [-]
-    Availability_factor=0.7, # [-]
+    Availability_factor=0.1, # [-]
     CAPEX=200 * 10**6,  # [EUR]
     OPEX_fixed=20 * 10**6,  # [EUR/year]
     OPEX_variable=44,  # [EUR/tCO2]
@@ -265,7 +329,7 @@ def BECCS_investment(
     Finally, computes metrics
     """
 
-    plant = BeccsPlant(Operating_hours=Availability_factor*8760)
+    plant = BeccsPlant(Availability_factor)
 
     # CALCULATE ENERGY/CO2 PRICES FOR THIS SOW:
     # Helping functions are used to construct pseudo-random energy and CO2 price projections. The
@@ -434,7 +498,7 @@ def return_model() -> Model:
         UniformUncertainty("pbiomass", 15, 35), #15-35
         UniformUncertainty("pelectricity_mean",20,160), #KÅRE USED THIS
         UniformUncertainty("pelectricity_dt",0.01,0.50),
-        UniformUncertainty("pheat_mean",50, 150), #50 (from Exergi) or 40 (from Kåre)?
+        UniformUncertainty("pheat_mean",50, 160), #50 (from Exergi) or 40 (from Kåre)?
         UniformUncertainty("pheat_dt",0.01,0.50),
 
         UniformUncertainty("pETS_2050", 125, 375), #100-900, but Implement Consulting suggest others... IEA suggest 250? https://iea.blob.core.windows.net/assets/2db1f4ab-85c0-4dd0-9a57-32e542556a49/GlobalEnergyandClimateModelDocumentation2022.pdf 

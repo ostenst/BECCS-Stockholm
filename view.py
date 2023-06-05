@@ -9,10 +9,10 @@ To run the program, first follow the installation guide provided in the reposito
 this file "BECCS_investment_paper_version.py" is in the root "Rhodium" folder.
 """
 __author__ = "Oscar Stenström"
-__date__ = "2023-02-16"
+__date__ = "2023-06-05"
 
 from scipy.optimize import brentq as root
-from rhodium import scatter2d, Cart, pairs, DataSet, Model, joint, scatter3d
+from rhodium import scatter2d, Cart, pairs, DataSet, Model, joint
 import csv
 import openpyxl
 import matplotlib.pyplot as plt
@@ -91,6 +91,10 @@ def robustness_analysis(model_results: DataSet):
 
 
 def scenario_discovery(model: Model, model_results: DataSet) -> list:
+    #NOW I WANT TO FIND THE INTERESTING SCENARIOS. WITH EXACT VALUES!
+    #1) Find Regret=0. See what pop outs.
+
+
     # The scenario discovery produces ranges of uncertainties (i.e. scenarios) where Invest performs well (i.e. have Regret = 0).
     print("-------------BEGIN SCENARIO DISCOVERY NOW-------------")
     classification = model_results.apply("'Reliable' if (Regret == 0 and NPV_invest >= 0) else 'Unreliable'") 
@@ -99,7 +103,7 @@ def scenario_discovery(model: Model, model_results: DataSet) -> list:
     # pNE_supported-Cost_specific > 0
     # Regret != 0
     # Maybe find scenarios based on Exergi adaptation: pelectricity-pheat < 40 MWh. In such scenarios, what are the key drivers?
-    
+
     cart_results = Cart(
         model_results,
         classification,
@@ -148,7 +152,7 @@ def save_scenario_discovery(node_list: list, RDM_results_excel: openpyxl.Workboo
     # Save discovered scenarios (in the node_list) to a CART excel sheet:
     sheet = RDM_results_excel.create_sheet("CART_results")
     RDM_results_excel.active = RDM_results_excel["CART_results"]
-    sheet["A1"] = "Node nr"
+    sheet["A1"] = "Scenario node nr"
     sheet["B1"] = "Class"
     sheet["C1"] = "Density"
     sheet["D1"] = "Coverage"
@@ -171,90 +175,116 @@ def plot_scenario_of_interest(model: Model, model_results: DataSet):
     # represents a discovered scenario. The drawing is hard coded and can be changed as desired, depending on the scenario of interest.
 
     #-----------------The 1st scenario is plotted below----------
-    fig = scatter2d(model, model_results, x="yCLAIM", y="pNE_mean", c="Regret") 
+    # 2	Reliable	91.54516608426718	39.385508648844805	pelectricity_mean <= 109.776455	yCLAIM <= 2034.040527 (REGRET = 0)
+    fig = scatter2d(model, model_results, x="yCLAIM", y="pelectricity_mean", c="Regret") 
     scenario_area = mpatches.Rectangle(
-        (2024, 174.4),
-        (2031 - 2024),
-        300 - (174.4),
+        (2024, 20),
+        (2034 - 2024),
+        110 - (20),
         fill=False,
-        color="crimson",
+        color="gold",
         linewidth=3,
     )
     # facecolor="red")
     plt.gca().add_patch(scenario_area)
-    fig.savefig("4_Scenario_1.png") 
+    fig.savefig("4_Scenario_1.png", dpi=600) 
     plt.clf()
 
     #-----------------The 2nd scenario is plotted below----------
-    fig = scatter2d(model, model_results, x="yCLAIM", y="yBIOban", c="Regret")
+    # 1170	Reliable	75.04733607154301	61.26316790716477	pelectricity_mean > 81.914059	yCLAIM > 2034.032410 (REGRET != 0)
+    fig = scatter2d(model, model_results, x="yCLAIM", y="pelectricity_mean", c="Regret")
     scenario_area = mpatches.Rectangle(
-        (2024, 2039),
-        (2033 - 2024),
-        2050 - (2039),
+        (2034, 82),
+        (2050 - 2034),
+        160 - (82),
         fill=False,
         color="crimson",
         linewidth=3,
     )
     # facecolor="red")
     plt.gca().add_patch(scenario_area)
-    fig.savefig("4_Scenario_2.png")
+    fig.savefig("4_Scenario_2.png", dpi=600)
     plt.clf()
 
     #-----------------The 3rd scenario is plotted below----------
-    fig = scatter2d(model, model_results.find("Regret > 1*10**9"), x="Cost_specific", y="pNE_supported", c="pelectricity_mean") #, s="pelectricity_mean", s_range = (10, 50)
+    # 206	Reliable	96.2998361551065	29.347147671951067	pNE_mean > 150.728317	yCLAIM <= 2030.209717 (REGRET = 0 AND Pelec>82)
+    fig = scatter2d(model, model_results.find("pelectricity_mean>82"), x="yCLAIM", y="pNE_mean", c="Regret") 
     scenario_area = mpatches.Rectangle(
-        (0, 75),
-        (140 - 0),
-        300 - (75),
-        fill=True,
-        color="white",
-        linewidth=1,
-    )
-    # facecolor="red")
-    plt.gca().add_patch(scenario_area)
-    fig.savefig("4_Scenario_3.png")
-    plt.clf()
-
-    #-----------------The 4th scenario is plotted below----------
-    fig = scatter2d(model, model_results, x="yCLAIM", y="pelectricity_mean", c="Regret")
-    scenario_area = mpatches.Rectangle(
-        (2034, 66),
-        (2050 - 2034),
-        160 - (66),
+        (2024, 151),
+        (2030 - 2024),
+        300 - (151),
         fill=False,
         color="crimson",
         linewidth=3,
+        linestyle = 'dashed',
     )
     # facecolor="red")
     plt.gca().add_patch(scenario_area)
-    fig.savefig("4_Scenario_4.png")
+    fig.savefig("4_Scenario_3.png", dpi=600)
     plt.clf()
 
-    # #-----------------These rows can be used to combine plots into subplots----------
-    # # crop the right side of fig2 and fig3 by 5%
-    # img2 = Image.open("4_Scenario_2.png")
-    # img2_width, img2_height = img2.size
-    # img2_cropped = img2.crop((0, 0, int(img2_width * 0.95), img2_height))
-    # img2_cropped.save("4_Scenario_2_cropped.png")
+    #-----------------The 4th scenario is plotted below----------
+    # 95	Reliable	70.06802721088435	39.56005586592179	pETS_2050 > 232.763702	yBIOban <= 2034.975525 (REGRET = 0, AND Pelec>82 AND yCLAIM>2034)
+    # 169	Reliable	88.32214765100672	22.97486033519553	pETS_2050 > 232.763702	AUCTION > 0.532030	yBIOban <= 2034.975525
+    fig = scatter2d(model, model_results.find("pelectricity_mean>82 and yCLAIM>2034"), x="pETS_2050", y="yBIOban", c="Regret")
+    scenario_area = mpatches.Rectangle(
+        (233, 2030),
+        (375 - 233),
+        2035 - (2030),
+        fill=False,
+        color="crimson",
+        linewidth=3,
+        linestyle = 'dashed',
+    )
+    # facecolor="red")
+    plt.gca().add_patch(scenario_area)
+    fig.savefig("4_Scenario_4.png", dpi=600)
+    plt.clf()
 
-    # img3 = Image.open("4_Scenario_3.png")
-    # img3_width, img3_height = img3.size
-    # img3_cropped = img3.crop((0, 0, int(img3_width * 0.95), img3_height))
-    # img3_cropped.save("4_Scenario_3_cropped.png")
+    #-----------------These rows can be used to combine plots into subplots----------
+    # crop the right side of fig2 and fig3 by 5%
+    img1 = Image.open("4_Scenario_1.png")
+    img1_width, img1_height = img1.size
+    img1_cropped = img1.crop((0, img1_width * 0.05, img1_width * 0.95, img1_height))
+    img1_cropped.save("4_Scenario_1_cropped.png")
 
-    # # create a new figure and combine fig2 and fig3
-    # fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 6))
-    # ax1.imshow(img2_cropped)
-    # ax1.set_title("Scenario 2")
-    # ax1.axis("off")
-    # ax2.imshow(img3_cropped)
-    # ax2.set_title("Scenario 3")
-    # ax2.axis("off")
+    img2 = Image.open("4_Scenario_2.png")
+    img2_width, img2_height = img2.size
+    img2_cropped = img2.crop((0, img2_width * 0.05, img2_width * 0.95, img2_height))
+    img2_cropped.save("4_Scenario_2_cropped.png")
 
-    # # adjust the layout and save the combined figure
-    # plt.tight_layout()
-    # plt.savefig("fig2_and_fig3.png")
-    # plt.clf()
+    img3 = Image.open("4_Scenario_3.png")
+    img3_width, img3_height = img3.size
+    img3_cropped = img3.crop((0, img3_width * 0.05, img3_width * 0.95, img3_height))
+    img3_cropped.save("4_Scenario_3_cropped.png")
+
+    img4 = Image.open("4_Scenario_4.png")
+    img4_width, img4_height = img4.size
+    img4_cropped = img4.crop((0, img4_width * 0.05, img4_width * 0.95, img4_height))
+    img4_cropped.save("4_Scenario_4_cropped.png")
+
+    # create a new figure and combine fig2 and fig3
+    fig, axs = plt.subplots(2, 2, figsize=(12,9))
+    axs[0,0].imshow(img1_cropped)
+    axs[0,0].set_xlabel("(a)", fontsize=12)
+    axs[0,0].axis("off")
+    axs[0,1].imshow(img2_cropped)
+    axs[0,1].set(xlabel="(b)")
+    axs[0,1].axis("off")
+    axs[1,0].imshow(img3_cropped)
+    axs[1,0].set(xlabel="(c)")
+    axs[1,0].axis("off")
+    axs[1,1].imshow(img4_cropped)
+    axs[1,1].set(xlabel="(d)")
+    axs[1,1].axis("off")
+
+    # adjust the layout by reducing the height spacing between subplots
+    # plt.subplots_adjust(hspace=0)
+
+    # adjust the layout and save the combined figure
+    plt.tight_layout()
+    plt.savefig("4_Scenarios_ALL.png")
+    plt.clf()
 
 def save_sensitivity_analysis(
     model: Model, sobol_result, RDM_results_excel: openpyxl.Workbook
@@ -318,7 +348,7 @@ def plot_sensitivity_analysis_results(sobol_result):
             ],
         },
     )
-    fig.savefig("3_Sobol_spider1.png")
+    fig.savefig("3_Sobol_spider1.png", dpi=600)
     plt.clf()
     fig = sobol_result.plot_sobol(
         radSc=1.9,
@@ -350,7 +380,7 @@ def plot_sensitivity_analysis_results(sobol_result):
             ],
         },
     )
-    fig.savefig("3_Sobol_spider2.png")
+    fig.savefig("3_Sobol_spider2.png", dpi=600)
 
 
 def plot_critical_uncertainties(model: Model, model_results: DataSet):
@@ -360,29 +390,3 @@ def plot_critical_uncertainties(model: Model, model_results: DataSet):
 
     fig = scatter2d(model, model_results, x="AUCTION", y="yBIOban", c="Regret")
     fig.savefig("3_Sobol_Us2.png")
-
-
-    # crop the right side of fig2 and fig3 by 5%
-    img2 = Image.open("3_Sobol_Us1.png")
-    img2_width, img2_height = img2.size
-    img2_cropped = img2.crop((0, 0, int(img2_width * 0.95), img2_height))
-    img2_cropped.save("3_Sobol_Us1_cropped.png")
-
-    img3 = Image.open("3_Sobol_Us2.png")
-    img3_width, img3_height = img3.size
-    img3_cropped = img3.crop((0, 0, int(img3_width * 0.95), img3_height))
-    img3_cropped.save("3_Sobol_Us2_cropped.png")
-
-    # create a new figure and combine fig2 and fig3
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 6))
-    ax1.imshow(img2_cropped)
-    ax1.set_title("Scenario S1")
-    ax1.axis("off")
-    ax2.imshow(img3_cropped)
-    ax2.set_title("Scenario S2")
-    ax2.axis("off")
-
-    # adjust the layout and save the combined figure
-    plt.tight_layout()
-    plt.savefig("sobol1_and_2.png")
-    plt.clf()
