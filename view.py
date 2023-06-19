@@ -25,31 +25,31 @@ def plot_results(model: Model, model_results: DataSet):
     ## BELOW IS A MIX OF RESULTS ANALYSIS AND PLOTTING
     print("-------------BEGIN RESPONSE PLOTTING NOW-------------")
     fig = scatter2d(model, model_results, x="NPV_wait", y="NPV_invest", c="Regret")
-    fig.savefig("2_NPV_Regret.png")
+    fig.savefig("2_NPV_Regret.png", dpi=600)
     
     joint(model, model_results, x="NPV_wait", y="NPV_invest", color="turquoise")
-    plt.savefig("2_NPV_distr.png")
+    plt.savefig("2_NPV_distr.png", dpi=600)
     plt.clf()
 
     fig = scatter2d(model, model_results, x="pNE_supported", y="NPV_invest", c="Regret")
-    fig.savefig("2_NPV_pNE.png")
+    fig.savefig("2_NPV_pNE.png", dpi=600)
     
     fig = scatter2d(model, model_results, x="Cost_specific", y="pNE_supported", c="Regret")
-    fig.savefig("2_pNE_Costs.png")
+    fig.savefig("2_pNE_Costs.png", dpi=600)
 
     fig = scatter2d(model, model_results, x="Cost_specific", y="NPV_invest", c="Regret")
-    fig.savefig("2_NPV_Costs.png")
+    fig.savefig("2_NPV_Costs.png", dpi=600)
 
     joint(model, model_results, x="Cost_specific", y="pNE_supported", color="turquoise")
-    plt.savefig("2_Costs_distr.png")
+    plt.savefig("2_Costs_distr.png", dpi=600)
     plt.clf()
 
     joint(model, model_results, x="pNE_mean", y="pNE_supported", color="turquoise")
-    plt.savefig("2_pNE_distr.png")
+    plt.savefig("2_pNE_distr.png", dpi=600)
     plt.clf()
     
     pairs(model, model_results, brush=["Regret > 0", "Regret == 0"])
-    plt.savefig("2_Responses_Pair.png")
+    plt.savefig("2_Responses_Pair.png", dpi=600)
     plt.clf()
     
     n_successful   = len(model_results.find("Regret==0 and pNE_supported>120"))
@@ -283,7 +283,7 @@ def plot_scenario_of_interest(model: Model, model_results: DataSet):
 
     # adjust the layout and save the combined figure
     plt.tight_layout()
-    plt.savefig("4_Scenarios_ALL.png")
+    plt.savefig("4_Scenarios_ALL.png", dpi=600)
     plt.clf()
 
 def save_sensitivity_analysis(
@@ -386,7 +386,7 @@ def plot_sensitivity_analysis_results(sobol_result):
 def plot_critical_uncertainties(model: Model, model_results: DataSet):
     # Below one can plot the critical uncertainties (i.e. with high total sensitivity indices), to see how these affect Regret.
     fig = scatter2d(model, model_results, x="yCLAIM", y="pelectricity_mean", c="Regret")
-    fig.savefig("3_Sobol_Us1.png")
+    fig.savefig("3_Sobol_Us1.png", dpi=600)
 
     fig = scatter2d(model, model_results, x="AUCTION", y="yBIOban", c="Regret")
-    fig.savefig("3_Sobol_Us2.png")
+    fig.savefig("3_Sobol_Us2.png", dpi=600)
