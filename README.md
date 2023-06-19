@@ -1,5 +1,5 @@
 # The BECCS-Stockholm repository
-This repo hosts an exploratory model of Stockholm Exergi AB's deployment of bioenergy cabon capture and storage (BECCS) in Stockholm, Sweden. The model.py file contains the investment decision model, and the view.py file contains different methods for analyzing the results. The controller.py file specifies and performs the complete analysis, when run in the terminal. The repo relies extensively on Rhodium [1] to perform the analysis.
+This repo hosts an exploratory model of Stockholm Exergi AB's deployment of bioenergy cabon capture and storage (BECCS) in Stockholm, Sweden. The model.py file contains the investment decision model, and the view.py file contains different methods for analyzing the results. The controller.py file specifies and performs the complete analysis, when run in the terminal. The repo relies extensively on [Rhodium](https://github.com/Project-Platypus/Rhodium) [1] to perform the analysis.
 
 # Installing and running the model
 First make a clone of the BECCS-Stockholm repository. Then install Rhodium in your Python environment (we use Anaconda, Python v.3.10.9).
