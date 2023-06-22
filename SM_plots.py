@@ -55,7 +55,7 @@ fig, axs = plt.subplots(nrows=2, ncols=2, figsize=(10, 8))
 
 # Define the list of rows for each subplot
 all_rows = [rows1, rows2, rows3, rows4]
-x_labels = ["(a)","(b)","(c)","(d)"]
+x_labels = ["(A)","(B)","(C)","(D)"]
 y_labels = ["Price of negative emissions [EUR/tCO2]", "Price of EU ETS allowances [EUR/tCO2]", "Price of electricity [EUR/MWh]", "Price of heat [EUR/MWh]"]
 
 # Plot the line for each scenario in each subplot
