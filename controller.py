@@ -1,15 +1,14 @@
 """ROBUST DECISION MAKING (RDM) MODEL FOR BECCS
 
 This program was developed to perform a Robust Decision Making (RDM) analysis of the investment
-decision of deploying a bioenergy carbon capture and storage deployment (BECCS) facility. The
-case studied is the planned BECCS facility of Stockholm Exergi (more info at www.beccs.se).
-The program utilizes Rhodium, an open-source Python library for RDM and exploratory modeling:
+decision of deploying a bioenergy carbon capture and storage deployment (BECCS) facility. The 
+program utilizes Rhodium, an open-source Python library for RDM and exploratory modeling:
 https://github.com/Project-Platypus/Rhodium
 To run the program, first follow the installation guide provided in the repository. Make sure
-this file "BECCS_investment_paper_version.py" is in the root "Rhodium" folder.
+this file "controller.py" is in the root "Rhodium" folder before running it in the terminal.
 """
 __author__ = "Oscar Stenström"
-__date__ = "2023-02-16"
+__date__ = "2023-06-26"
 
 from scipy.optimize import brentq as root
 from rhodium import Model, sample_lhs, update, evaluate, sa, DataSet
@@ -44,8 +43,7 @@ def evaluate_model(model: Model) -> DataSet:
     """
     random.seed(7)
 
-    # 10 000 SOWs are evaluated, and in the full article this is repeated for
-    # four energy price trends (i.e. by changing `pelectricity_dt` and `pheat_dt`).
+    # 100 000 SOWs/futures are evaluated. Can be reduced for fast model runs.
     SOWs = sample_lhs(model, 100000)
     inputs = update(SOWs, POLICY)
     model_results = evaluate(model, inputs)
@@ -54,8 +52,9 @@ def evaluate_model(model: Model) -> DataSet:
 
 def conduct_sensitivity_analysis(model: Model, policy):
     print("-------------BEGIN SENSITIVITY ANALYSIS NOW-------------")
-    # The sensitivity analysis indicates what uncertainties drive Regret. Using Sobols method, this is measured in 1st, 2nd and total order sensitivity indices.
-    # The article uses nsamples = 1 000 000, but for fast model evaluations nsamples = 10 000 can be used.
+    # The sensitivity analysis indicates what uncertainties drive Regret. Using Sobols method, 
+    # this is measured in 1st, 2nd and total order sensitivity indices. The article uses 
+    # nsamples = 1 000 000, but for fast model evaluations nsamples = 10 000 can be used.
     sobol_result = sa(model, "Regret", policy=policy, method="sobol", nsamples=1000000)
     return sobol_result
 
@@ -66,6 +65,7 @@ def main():
     # Create Excel workbook to house results
     workbook = openpyxl.Workbook()
 
+    # Perform analyis steps
     model = return_model()
     model_results = evaluate_model(model)
     save_model_results(workbook, model_results)
@@ -76,9 +76,6 @@ def main():
     save_scenario_discovery(node_list, workbook)
     plot_scenario_of_interest(model, model_results)
     sa_result = conduct_sensitivity_analysis(model, POLICY)
-    # You can comment out the CART node prints and the Sobol sensitivity analysis prints,
-    # as these anyway are saved to the RDM_processed_results file.
-    # Doing this makes it easier to see the robustness results, which are printed in the terminal."
     save_sensitivity_analysis(model, sa_result, workbook)
     plot_sensitivity_analysis_results(sa_result)
     plot_critical_uncertainties(model, model_results)
