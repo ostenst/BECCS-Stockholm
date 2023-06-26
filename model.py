@@ -1,33 +1,35 @@
 """ROBUST DECISION MAKING (RDM) MODEL FOR BECCS
 
 This program was developed to perform a Robust Decision Making (RDM) analysis of the investment
-decision of deploying a bioenergy carbon capture and storage deployment (BECCS) facility. The
-case studied is the planned BECCS facility of Stockholm Exergi (more info at www.beccs.se).
-The program utilizes Rhodium, an open-source Python library for RDM and exploratory modeling:
+decision of deploying a bioenergy carbon capture and storage deployment (BECCS) facility. The 
+program utilizes Rhodium, an open-source Python library for RDM and exploratory modeling:
 https://github.com/Project-Platypus/Rhodium
 To run the program, first follow the installation guide provided in the repository. Make sure
-this file "BECCS_investment_paper_version.py" is in the root "Rhodium" folder.
+the file "controller.py" is in the root "Rhodium" folder before running it in the terminal.
 
 Glossary
 --------
 NE       = negative emission, i.e. one tonne of atmospheric CO2 permanently removed and stored
 CF       = cash flow
 p        = price
-dt       = "likely" change over time (high value => higher probability of the parameter increasing
-                                       low value => higher probability of the parameter decreasing)
+dt       = price variability (as a percentage of the price)
 y        = year
+VCM      = voluntary carbon market
 AUCTION  = a percentage of specific BECCS costs covered by a reversed auctions policy
 yQUOTA   = a year when quota obligations of NEs could be imposed
 yEUint   = a year when NEs could be integrated in an EU scheme for carbon removal trading
 yBIOban  = a year when the usage of biomass as renewable energy could be severely restricted
 yCLAIM   = a year when the claiming and selling of NEs to the voluntary carbon market is allowed
+ySHOCK   = a year when energy prices see a shock increase
 SOW      = state of the world, i.e. one specific combination of conditions (parameter values)
 -Invest- = when emphasized, Invest refers to the decision to invest in the BECCS facility
--Wait-   = when emphasized, Wait refers to the decision to not invest in the BECCS facility
+-Wait-   = when emphasized, Wait refers to the decision to never invest in the BECCS facility
 
+NOTE: See the main article and its supplementary materials for detailed descriptions of the 
+methods and equations used.
 """
 __author__ = "Oscar Stenström"
-__date__ = "2023-02-16"
+__date__ = "2023-06-26"
 
 import math
 import numpy as np
@@ -46,10 +48,6 @@ from dataclasses import dataclass, field
 
 # One can set investment_decision = 1 if Invest is of interest, or investment_decision = 0 if Wait
 # is of interest.
-
-# One can set pelectricity_dt = [-1,0.4] depending on if trends of lower or higher electricity
-# prices are explored, or pheat_dt = [-0.5,0.7] depending on if trends of lower or higher heat
-# prices are explored.
 
 ## DEFINE HELPING FUNCTIONS:
 def calculate_regret(
@@ -93,9 +91,9 @@ def find_pETS(pETS_2050, pETS_dt):
 
     Notes
     -----
-    The price trajectory is a simple line between the ETS price in the first modelling year (about EUR 100 in 2023):
-    https://tradingeconomics.com/commodity/carbon
-    and the ETS price in the last modelling year, pETS_2050. The trajectory is perturbed by the price volatility pETS_dt.
+    The price trajectory is a simple line between the ETS price in the first modelling year (about 
+    EUR 100 in 2023) and the ETS price in the last modelling year, pETS_2050. The trajectory is 
+    perturbed by the price volatility pETS_dt.
     """
     pETS_2024 = 100
     pETS_vec = [pETS_2024]
@@ -121,7 +119,8 @@ def find_sell_prices(pmean, pvolatility, pfloor, ySHOCK):
 
     Notes
     -----
-    The price for each year is the mean price, perturbed by the price volatility, constrained by a price floor.
+    The price for each year is the mean price, perturbed by the price volatility, constrained by 
+    a price floor.
     """
     pvec = []
     for t in range(0,27):
@@ -131,8 +130,9 @@ def find_sell_prices(pmean, pvolatility, pfloor, ySHOCK):
         else:
             pnew = pmean * (1 + pchange)
 
-        # If a year of a price shock is reached, new prices are temporarily heightened by ~90 %. This assumption is in-line with the historic electricity prices of the Stockholm area in 2022:
-        # https://www.vattenfall.se/elavtal/elpriser/rorligt-elpris/prishistorik/
+        # If a year of a price shock is reached, new prices are temporarily heightened by ~90 %. 
+        # This assumption is in-line with the historic electricity prices of the Stockholm area 
+        # in 2022.
         if 2024+t == round(ySHOCK):
             pnew = pnew*1.9
 
@@ -143,12 +143,12 @@ def find_sell_prices(pmean, pvolatility, pfloor, ySHOCK):
 class BeccsPlant:
     """Represents a biomass CCS plant
 
-    POWER PLANT OPERATING CONDITIONS: Operating conditions are not modelled as uncertainties,
-    as they are routinely managed by the power plant operators.
-    Refer to full article for data sources.
+    POWER PLANT OPERATING CONDITIONS: The availability factor uncertainty determines the yearly 
+    operating conditions of the plant. Refer to full article for data sources.
 
     Arguments
     ---------
+    Availability_factor : float
     Qbiomass_input : float
     Wpower_output_wait : float
     Qheat_output_wait : float
@@ -162,61 +162,6 @@ class BeccsPlant:
     CO2captured: float
     OPEX_power_plant: float
     """
-
-    # Qbiomass_input: float = 400  # [MW]
-    # Wpower_output_wait: float = 118  # [MW]
-    # Qheat_output_wait: float = 330  # [MW]
-    # Wpower_output_invest: float = 40  # [MW]
-    # Qheat_output_invest: float = 424  # [MW]
-
-    # Operating_hours: float = (
-    #     8760 * 0.7
-    # )  # [h] rule of thumb of ~70 % operating hours/year.
-    # # CO2capture_rate: float = 0.3  # [tCO2/MWh_biomass]
-    # CO2capture_rate: float = 140  # [tCO2/h]
-
-    # CO2captured: float = field(init=False)  # [tCO2/year]
-    # OPEX_power_plant: float = field(init=False)  # [EUR/year]
-
-    # # [tCO2/year] NOTE: SHOULD BE ABOUT 33% HIGHER
-    # # CO2captured = CO2capture_rate * Qbiomass_input * Operating_hours 
-    # CO2captured = CO2capture_rate * Operating_hours
-    # print(Operating_hours)
-    # # [EUR/year], see full article for these operational costs.
-    # OPEX_power_plant = 29000 * Qbiomass_input + 0.5 * Operating_hours * Qbiomass_input
-
-    # Qbiomass_input: float = 400
-    # Wpower_output_wait: float = 118
-    # Qheat_output_wait: float = 330
-    # Wpower_output_invest: float = 40
-    # Qheat_output_invest: float = 424
-
-    # def __init__(self, Availability_factor):
-    #     self.Operating_hours = 8760 * Availability_factor
-    #     self.CO2capture_rate: float = 140
-    #     self.CO2captured: float = self.CO2capture_rate * self.Operating_hours
-    #     self.OPEX_power_plant: float = 29000 * self.Qbiomass_input + 0.5 * self.Operating_hours * self.Qbiomass_input
-
-    # Qbiomass_input: float = 400
-    # Wpower_output_wait: float = 118
-    # Qheat_output_wait: float = 330
-    # Wpower_output_invest: float = 40
-    # Qheat_output_invest: float = 424
-
-    # def __init__(self, Availability_factor):
-    #     self.Operating_hours = 8760 * Availability_factor
-    #     self.CO2capture_rate: float = 140
-    #     self.CO2captured: float = 0
-    #     self.OPEX_power_plant: float = 0
-    #     self.calculate_captured_CO2()
-    #     self.calculate_OPEX()
-
-    # def calculate_captured_CO2(self):
-    #     self.CO2captured = self.CO2capture_rate * self.Operating_hours
-
-    # def calculate_OPEX(self):
-    #     self.OPEX_power_plant = 29000 * self.Qbiomass_input + 0.5 * self.Operating_hours * self.Qbiomass_input
-    
     Availability_factor: float
 
     Qbiomass_input: float = 400  
@@ -260,6 +205,9 @@ def calculate_cash_flow(
 ) -> float:
     """Calculate the cash flow
 
+    Cash flows from buying and selling energy are here quantified, depending on if Investing 
+    or Waiting.
+
     Arguments
     ---------
     year_index: int
@@ -296,24 +244,24 @@ def calculate_cash_flow(
 def BECCS_investment(
     investment_decision,
     # Set some nominal values as function inputs, as desired.
-    pelectricity_mean=50,  # [EUR/MWh]
-    pheat_mean=50,  # [EUR/MWh]
-    pNE_mean=30,  # [EUR/tCO2]
-    pETS_2050=80,  # [EUR/tCO2]
-    pbiomass=25,  # [EUR/MWh]
-    pelectricity_dt=0.4,  # -1 to 0.4,   sets likelihood of price increase/reduction #NOTE: CHANGE THIS
-    pheat_dt=-0.5,  # -0.5 to 0.7, sets likelihood of price increase/reduction
-    pNE_dt=0.3,  # -1 to +1,    sets likelihood of price increase/reduction
-    pETS_dt=0,  # -1 to +1,    sets exponential increase in ETS prices
-    Discount_rate=0.06,  # [-]
-    Learning_rate=0.01,  # [-]
-    Availability_factor=0.1, # [-]
-    CAPEX=200 * 10**6,  # [EUR]
-    OPEX_fixed=20 * 10**6,  # [EUR/year]
-    OPEX_variable=44,  # [EUR/tCO2]
-    Cost_transportation=22,  # [EUR/tCO2]
-    Cost_storage=14.5,  # [EUR/tCO2]
-    AUCTION=0.5,  # [-]
+    pelectricity_mean=50,       # [EUR/MWh]
+    pheat_mean=50,              # [EUR/MWh]
+    pNE_mean=30,                # [EUR/tCO2]
+    pETS_2050=80,               # [EUR/tCO2]
+    pbiomass=25,                # [EUR/MWh]
+    pelectricity_dt=0.4,        # [%/year]
+    pheat_dt=-0.5,              # [%/year]
+    pNE_dt=0.3,                 # [%/year]
+    pETS_dt=0,                  # [%/year]
+    Discount_rate=0.06,         # [-]
+    Learning_rate=0.01,         # [-]
+    Availability_factor=0.1,    # [-]
+    CAPEX=200 * 10**6,          # [EUR]
+    OPEX_fixed=20 * 10**6,      # [EUR/year]
+    OPEX_variable=44,           # [EUR/tCO2]
+    Cost_transportation=22,     # [EUR/tCO2]
+    Cost_storage=14.5,          # [EUR/tCO2]
+    AUCTION=0.5,                # [-]
     yQUOTA=2035,
     yEUint=2040,
     yBIOban=2051,
@@ -332,9 +280,7 @@ def BECCS_investment(
     plant = BeccsPlant(Availability_factor)
 
     # CALCULATE ENERGY/CO2 PRICES FOR THIS SOW:
-    # Helping functions are used to construct pseudo-random energy and CO2 price projections. The
-    # probabilities of price increases/decreases are influenced by the _dt parameters.
-
+    # Helping functions are used to construct energy and CO2 price projections. 
     pelectricity = find_sell_prices(
         pelectricity_mean,
         pelectricity_dt,
@@ -421,7 +367,7 @@ def BECCS_investment(
             pNE_max = 0
             CFCO2 = pNE_max * plant.CO2captured - (Cost_specific * plant.CO2captured)
 
-        # Now when cash flows from energy and CO2 is known, NPV of Investing can be calculated:
+        # Now, when cash flows from energy and CO2 is known, NPV of Investing can be calculated:
         CF = CFenergy + CFCO2
         NPV_invest += CF / ((1 + Discount_rate) ** t)
         CFvec.append(CF)
@@ -431,9 +377,7 @@ def BECCS_investment(
     Regret = calculate_regret(NPV_invest, NPV_wait, investment_decision)
 
     ## CALCULATE OTHER INTERESTING PARAMETERS:
-    # pelectricity_mean = np.mean(pelectricity)
-    # pheat_mean = np.mean(pheat)
-    pNE_supported = np.mean(pNE_supported) # THIS IS OUTDATED
+    pNE_supported = np.mean(pNE_supported) 
     Cost_specific = (
             (OPEX_variable + Cost_transportation + Cost_storage)
             + OPEX_fixed / plant.CO2captured
@@ -445,6 +389,7 @@ def BECCS_investment(
 
 def return_model() -> Model:
     ## DEFINE RHODIUM MODEL
+    # This function determines the parameters, responses, levers and uncertainties of the model.
     model = Model(BECCS_investment)
     model.parameters = [
         Parameter("investment_decision"),
@@ -493,20 +438,20 @@ def return_model() -> Model:
 
     # For uncertainties, some are expanded ranges around values found in the literature, and some are assumed. Refer to full article.
     model.uncertainties = [
-        UniformUncertainty("pNE_mean", 30, 300), #20-400 or 100-500... oooor: 100-300(DACCS upper cost). If 30 lower end, justify by referring to ETS=100.
+        UniformUncertainty("pNE_mean", 30, 300), 
         UniformUncertainty("pNE_dt", 0.01, 0.50),
-        UniformUncertainty("pbiomass", 15, 35), #15-35
-        UniformUncertainty("pelectricity_mean",20,160), #KÅRE USED THIS
+        UniformUncertainty("pbiomass", 15, 35), 
+        UniformUncertainty("pelectricity_mean",20,160), 
         UniformUncertainty("pelectricity_dt",0.01,0.50),
-        UniformUncertainty("pheat_mean",50, 160), #50 (from Exergi) or 40 (from Kåre)?
+        UniformUncertainty("pheat_mean",50, 160), 
         UniformUncertainty("pheat_dt",0.01,0.50),
 
-        UniformUncertainty("pETS_2050", 125, 375), #100-900, but Implement Consulting suggest others... IEA suggest 250? https://iea.blob.core.windows.net/assets/2db1f4ab-85c0-4dd0-9a57-32e542556a49/GlobalEnergyandClimateModelDocumentation2022.pdf 
+        UniformUncertainty("pETS_2050", 125, 375), 
         UniformUncertainty("pETS_dt", 0.01, 0.50),
         UniformUncertainty("Discount_rate", 0.04, 0.10), 
         UniformUncertainty("CAPEX", 100 * 10**6, 300 * 10**6),
-        UniformUncertainty("OPEX_fixed", 10 * 10**6, 30 * 10**6), #18-22 or 10-30 (mean 20)
-        UniformUncertainty("OPEX_variable", 18.5, 55.5),    #33-55 or 22-66 (mean 44)... but this contains elec penalty? NEW: Use mean 37, but motivate +- heat/elec prices. Beiron: 15-30.
+        UniformUncertainty("OPEX_fixed", 10 * 10**6, 30 * 10**6), 
+        UniformUncertainty("OPEX_variable", 18.5, 55.5),
         UniformUncertainty("Cost_transportation", 17, 27),
         UniformUncertainty("Cost_storage", 6, 23),
         UniformUncertainty("Learning_rate", 0.0075, 0.0125),
