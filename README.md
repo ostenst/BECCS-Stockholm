@@ -16,6 +16,6 @@ Once it is made available on PyPi, install using:
 
     pip install git+https://github.com/ostenst/Rhodium@master#egg=Rhodium
 
-To run the model, navigate to your BECCS-Stockholm directory and run controller.py in the terminal. If the model does not run, check other dependencies (e.g. numpy, numpy_financial, random, csv, openpyxl, matplotlib, Image). In the controller.py file, sample size can be lowered (e.g. to 10 000) for fast model evaluations.
+To run the model, navigate to your BECCS-Stockholm directory and run controller.py in the terminal. If the model does not run, check other dependencies (e.g. Graphviz, numpy, numpy_financial, random, csv, openpyxl, matplotlib, Image). You can also check the [Rhodium](https://github.com/Project-Platypus/Rhodium) for more installation information. In the controller.py file, sample size can be lowered (e.g. to 10 000) for fast model evaluations.
 
 [1] Hadjimichael A, et al. 2020 Rhodium: Python Library for Many-Objective Robust Decision Making and Exploratory Modeling. Journal of Open Research Software, 8: 12. DOI: https://doi.org/10.5334/jors.293
