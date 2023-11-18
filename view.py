@@ -170,11 +170,14 @@ def plot_scenario_of_interest(model: Model, model_results: DataSet):
 
     #-----------------The 1st scenario is plotted below----------
     # The classifier Regret = 0 was used.
-    fig = scatter2d(model, model_results, x="yCLAIM", y="pelectricity_mean", c="Regret") 
+    # Reliable	97.55207659464355	46.455373316410146	AUCTION > 0.280721	yCLAIM <= 2038.001282
+    # Reliable	87.598161271787	22.543160281450632	yBIOban <= 2039.016968	yCLAIM > 2038.001282
+
+    fig = scatter2d(model, model_results, x="yCLAIM", y="AUCTION", c="Regret") 
     scenario_area = mpatches.Rectangle(
-        (2024, 20),
-        (2034 - 2024),
-        110 - (20),
+        (2024, 0.28),
+        (2038 - 2024),
+        1 - (0.28),
         fill=False,
         color="gold",
         linewidth=3,
@@ -186,11 +189,14 @@ def plot_scenario_of_interest(model: Model, model_results: DataSet):
 
     #-----------------The 2nd scenario is plotted below----------
     # The classifier Regret != 0 was used.
-    fig = scatter2d(model, model_results, x="yCLAIM", y="pelectricity_mean", c="Regret")
+    # Reliable	64.54293628808865	6.344624768543731	0.555616 <= AUCTION <= 0.773541	yBIOban > 2043.393250	yCLAIM > 2043.401245
+    # Reliable	50.819281888514176	69.75819627491559	yBIOban > 2039.046387	yCLAIM > 2038.001282 #TODO 
+
+    fig = scatter2d(model, model_results, x="yCLAIM", y="yBIOban", c="Regret")
     scenario_area = mpatches.Rectangle(
-        (2034, 82),
-        (2050 - 2034),
-        160 - (82),
+        (2038, 2039),
+        (2050 - 2038),
+        2050 - (2039),
         fill=False,
         color="crimson",
         linewidth=3,
@@ -200,78 +206,81 @@ def plot_scenario_of_interest(model: Model, model_results: DataSet):
     fig.savefig("4_Scenario_2.png", dpi=600)
     plt.clf()
 
-    #-----------------The 3rd scenario is plotted below----------
+    # #-----------------The 3rd scenario is plotted below----------
     # The classifier Regret = 0 was used.
-    fig = scatter2d(model, model_results.find("pelectricity_mean>82"), x="yCLAIM", y="pNE_mean", c="Regret") 
-    scenario_area = mpatches.Rectangle(
-        (2024, 151),
-        (2030 - 2024),
-        300 - (151),
-        fill=False,
-        color="crimson",
-        linewidth=3,
-        linestyle = 'dashed',
-    )
-    # facecolor="red")
-    plt.gca().add_patch(scenario_area)
+    # Adding vulnerable condition: yCLAIM > 2038
+    # Reliable	94.80097481722177	45.79763228464909	AUCTION > 0.292441	yBIOban <= 2039.016968 #TODO: PLOT THIS AS BOX
+
+    fig = scatter2d(model, model_results.find("yCLAIM > 2038"), x="AUCTION", y="yBIOban", c="Regret") 
+    # scenario_area = mpatches.Rectangle(
+    #     (2024, 151),
+    #     (2030 - 2024),
+    #     300 - (151),
+    #     fill=False,
+    #     color="crimson",
+    #     linewidth=3,
+    #     linestyle = 'dashed',
+    # )
+    # # facecolor="red")
+    # plt.gca().add_patch(scenario_area)
     fig.savefig("4_Scenario_3.png", dpi=600)
     plt.clf()
 
-    #-----------------The 4th scenario is plotted below----------
-    # The classifier Regret = 0 was used.
-    fig = scatter2d(model, model_results.find("pelectricity_mean>82 and yCLAIM>2034"), x="pETS_2050", y="yBIOban", c="Regret")
-    scenario_area = mpatches.Rectangle(
-        (233, 2030),
-        (375 - 233),
-        2035 - (2030),
-        fill=False,
-        color="crimson",
-        linewidth=3,
-        linestyle = 'dashed',
-    )
-    # facecolor="red")
-    plt.gca().add_patch(scenario_area)
-    fig.savefig("4_Scenario_4.png", dpi=600)
-    plt.clf()
+    # #-----------------The 4th scenario is plotted below----------
+    # # The classifier Regret = 0 was used. #TODO: ADD BOTH VULNERABLE CONDITIONS
+    # fig = scatter2d(model, model_results.find("AUCTION>XX and yCLAIM>2034"), x="pETS_2050", y="yBIOban", c="Regret")
+    # scenario_area = mpatches.Rectangle(
+    #     (233, 2030),
+    #     (375 - 233),
+    #     2035 - (2030),
+    #     fill=False,
+    #     color="crimson",
+    #     linewidth=3,
+    #     linestyle = 'dashed',
+    # )
+    # # facecolor="red")
+    # plt.gca().add_patch(scenario_area)
+    # fig.savefig("4_Scenario_4.png", dpi=600)
+    # plt.clf()
 
-    #-----------------These rows can be used to combine plots into subplots----------
-    img1 = Image.open("4_Scenario_1.png")
-    img1_width, img1_height = img1.size
-    img1_cropped = img1.crop((0, img1_width * 0.05, img1_width * 0.95, img1_height))
-    img1_cropped.save("4_Scenario_1_cropped.png")
+    # #-----------------These rows can be used to combine plots into subplots----------
+    # img1 = Image.open("4_Scenario_1.png")
+    # img1_width, img1_height = img1.size
+    # img1_cropped = img1.crop((0, img1_width * 0.05, img1_width * 0.95, img1_height))
+    # img1_cropped.save("4_Scenario_1_cropped.png")
 
-    img2 = Image.open("4_Scenario_2.png")
-    img2_width, img2_height = img2.size
-    img2_cropped = img2.crop((0, img2_width * 0.05, img2_width * 0.95, img2_height))
-    img2_cropped.save("4_Scenario_2_cropped.png")
+    # img2 = Image.open("4_Scenario_2.png")
+    # img2_width, img2_height = img2.size
+    # img2_cropped = img2.crop((0, img2_width * 0.05, img2_width * 0.95, img2_height))
+    # img2_cropped.save("4_Scenario_2_cropped.png")
 
-    img3 = Image.open("4_Scenario_3.png")
-    img3_width, img3_height = img3.size
-    img3_cropped = img3.crop((0, img3_width * 0.05, img3_width * 0.95, img3_height))
-    img3_cropped.save("4_Scenario_3_cropped.png")
+    # img3 = Image.open("4_Scenario_3.png")
+    # img3_width, img3_height = img3.size
+    # img3_cropped = img3.crop((0, img3_width * 0.05, img3_width * 0.95, img3_height))
+    # img3_cropped.save("4_Scenario_3_cropped.png")
 
-    img4 = Image.open("4_Scenario_4.png")
-    img4_width, img4_height = img4.size
-    img4_cropped = img4.crop((0, img4_width * 0.05, img4_width * 0.95, img4_height))
-    img4_cropped.save("4_Scenario_4_cropped.png")
+    # img4 = Image.open("4_Scenario_4.png")
+    # img4_width, img4_height = img4.size
+    # img4_cropped = img4.crop((0, img4_width * 0.05, img4_width * 0.95, img4_height))
+    # img4_cropped.save("4_Scenario_4_cropped.png")
 
-    # Creates a new figure and combine fig2 and fig3
-    fig, axs = plt.subplots(2, 2, figsize=(12,9))
-    axs[0,0].imshow(img1_cropped)
-    axs[0,0].set_xlabel("(a)", fontsize=12)
-    axs[0,0].axis("off")
-    axs[0,1].imshow(img2_cropped)
-    axs[0,1].set(xlabel="(b)")
-    axs[0,1].axis("off")
-    axs[1,0].imshow(img3_cropped)
-    axs[1,0].set(xlabel="(c)")
-    axs[1,0].axis("off")
-    axs[1,1].imshow(img4_cropped)
-    axs[1,1].set(xlabel="(d)")
-    axs[1,1].axis("off")
+    # # Creates a new figure and combine fig2 and fig3
+    # fig, axs = plt.subplots(2, 2, figsize=(12,9))
+    # axs[0,0].imshow(img1_cropped)
+    # axs[0,0].set_xlabel("(a)", fontsize=12)
+    # axs[0,0].axis("off")
+    # axs[0,1].imshow(img2_cropped)
+    # axs[0,1].set(xlabel="(b)")
+    # axs[0,1].axis("off")
+    # axs[1,0].imshow(img3_cropped)
+    # axs[1,0].set(xlabel="(c)")
+    # axs[1,0].axis("off")
+    # axs[1,1].imshow(img4_cropped)
+    # axs[1,1].set(xlabel="(d)")
+    # axs[1,1].axis("off")
 
-    plt.tight_layout()
-    plt.savefig("4_Scenarios_ALL.png", dpi=600)
+    # plt.tight_layout()
+    # plt.savefig("4_Scenarios_ALL.png", dpi=600)
     plt.clf()
 
 def save_sensitivity_analysis(

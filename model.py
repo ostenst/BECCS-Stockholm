@@ -441,7 +441,7 @@ def return_model() -> Model:
         UniformUncertainty("pNE_mean", 30, 300), 
         UniformUncertainty("pNE_dt", 0.01, 0.50),
         UniformUncertainty("pbiomass", 15, 35), 
-        UniformUncertainty("pelectricity_mean",20,160), 
+        UniformUncertainty("pelectricity_mean",20,80), 
         UniformUncertainty("pelectricity_dt",0.01,0.50),
         UniformUncertainty("pheat_mean",50, 160), 
         UniformUncertainty("pheat_dt",0.01,0.50),
