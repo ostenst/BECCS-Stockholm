@@ -54,7 +54,7 @@ def plot_results(model: Model, model_results: DataSet):
     # 120 EUR/tCO2 was arbitrarily chosen.
     n_successful   = len(model_results.find("Regret==0 and pNE_supported>120"))
     n_unsuccessful = len(model_results.find("Regret >0 and pNE_supported>120"))
-    print( n_successful/(n_successful+n_unsuccessful)*100 , "% of scenarios have Regret = 0 when the NE price is above 120 EUR/t") 
+    # print( n_successful/(n_successful+n_unsuccessful)*100 , "% of scenarios have Regret = 0 when the NE price is above 120 EUR/t") 
 
 def robustness_analysis(model_results: DataSet):
     """Prints robustness analytics to the terminal"""

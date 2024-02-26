@@ -44,7 +44,7 @@ def evaluate_model(model: Model) -> DataSet:
     random.seed(7)
 
     # 100 000 SOWs/futures are evaluated. Can be reduced for fast model runs.
-    SOWs = sample_lhs(model, 100000)
+    SOWs = sample_lhs(model, 2)
     inputs = update(SOWs, POLICY)
     model_results = evaluate(model, inputs)
     return model_results
@@ -55,7 +55,7 @@ def conduct_sensitivity_analysis(model: Model, policy):
     # The sensitivity analysis indicates what uncertainties drive Regret. Using Sobols method, 
     # this is measured in 1st, 2nd and total order sensitivity indices. The article uses 
     # nsamples = 1 000 000, but for fast model evaluations nsamples = 10 000 can be used.
-    sobol_result = sa(model, "Regret", policy=policy, method="sobol", nsamples=1000000)
+    sobol_result = sa(model, "Regret", policy=policy, method="sobol", nsamples=1000)
     return sobol_result
 
 
